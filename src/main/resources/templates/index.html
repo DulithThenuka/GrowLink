@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('GrowLink - Learn. Connect. Build.')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Grow with skills. Connect with purpose. Build with people.</h1>
+            <p>
+                GrowLink is a platform where people can learn, teach, collaborate,
+                and turn their goals into real progress.
+            </p>
+            <div class="hero-actions">
+                <a href="#" class="btn btn-primary">Get Started</a>
+                <a href="#" class="btn btn-secondary">Explore Community</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

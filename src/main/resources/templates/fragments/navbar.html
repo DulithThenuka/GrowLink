@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="navbar" class="navbar">
+    <div class="container nav-inner">
+        <a th:href="@{/}" class="brand">GrowLink</a>
+
+        <div class="nav-links">
+            <a th:href="@{/}">Home</a>
+            <a href="#">About</a>
+            <a href="#">Explore</a>
+            <a href="#">Login</a>
+            <a href="#">Register</a>
+        </div>
+    </div>
+</nav>
+</body>
+</html>
