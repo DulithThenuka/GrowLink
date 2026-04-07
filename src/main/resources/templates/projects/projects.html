@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Projects</title></head>
+<body>
+
+<h1>Projects</h1>
+
+<a th:href="@{/projects/create}">Create Project</a>
+
+<div th:each="p : ${projects}">
+    <h3 th:text="${p.title}"></h3>
+    <p th:text="${p.description}"></p>
+
+    <form th:action="@{/projects/join/{id}(id=${p.id})}" method="post">
+        <button>Join</button>
+    </form>
+</div>
+
+</body>
+</html>
