@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Learning Requests - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="connections-page">
+    <div class="container">
+        <div class="skills-header">
+            <h1>Learning Requests</h1>
+            <p>Request learning from people who teach skills and manage your learning journey.</p>
+        </div>
+
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+        <div class="connections-grid">
+
+            <section class="skills-card">
+                <h2>Request Learning</h2>
+
+                <form th:action="@{/learning-requests/send}" th:object="${learningRequestDto}" method="post" class="auth-form">
+                    <div class="form-group">
+                        <label>Choose Teacher & Skill</label>
+                        <select th:field="*{skillId}" id="skillSelect">
+                            <option value="">Select a skill</option>
+                            <option th:each="item : ${availableTeachSkills}"
+                                    th:value="${item.skill.id}"
+                                    th:text="${item.user.fullName + ' - ' + item.skill.name + ' (' + item.level + ')'}"
+                                    th:attr="data-teacher-id=${item.user.id}">
+                            </option>
+                        </select>
+                        <small class="field-error" th:if="${#fields.hasErrors('skillId')}" th:errors="*{skillId}"></small>
+                    </div>
+
+                    <input type="hidden" th:field="*{teacherId}" id="teacherIdField">
+                    <small class="field-error" th:if="${#fields.hasErrors('teacherId')}" th:errors="*{teacherId}"></small>
+
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea th:field="*{message}" rows="5" placeholder="Tell the teacher what you want to learn."></textarea>
+                        <small class="field-error" th:if="${#fields.hasErrors('message')}" th:errors="*{message}"></small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary auth-btn">Send Learning Request</button>
+                </form>
+            </section>
+
+            <section class="skills-card">
+                <h2>Received Learning Requests</h2>
+
+                <div th:if="${#lists.isEmpty(receivedLearningRequests)}" class="empty-state">
+                    No received learning requests yet.
+                </div>
+
+                <div th:each="request : ${receivedLearningRequests}" class="skill-item">
+                    <div class="skill-item-top">
+                        <h3 th:text="${request.learner.fullName}">Learner Name</h3>
+                        <span class="skill-badge" th:text="${request.status}">PENDING</span>
+                    </div>
+
+                    <p class="skill-category" th:text="${request.skill.name}">Skill Name</p>
+                    <p th:text="${request.message != null and !#strings.isEmpty(request.message) ? request.message : 'No message added.'}">
+                        Message
+                    </p>
+
+                    <div th:if="${request.status.name() == 'PENDING'}" class="connection-actions">
+                        <form th:action="@{/learning-requests/accept/{requestId}(requestId=${request.id})}" method="post">
+                            <button type="submit" class="btn btn-primary">Accept</button>
+                        </form>
+
+                        <form th:action="@{/learning-requests/reject/{requestId}(requestId=${request.id})}" method="post">
+                            <button type="submit" class="btn btn-secondary">Reject</button>
+                        </form>
+                    </div>
+
+                    <div th:if="${request.status.name() == 'ACCEPTED'}" class="connection-actions">
+                        <form th:action="@{/learning-requests/complete/{requestId}(requestId=${request.id})}" method="post">
+                            <button type="submit" class="btn btn-primary">Mark Completed</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section class="skills-card full-width-card">
+                <h2>Sent Learning Requests</h2>
+
+                <div th:if="${#lists.isEmpty(sentLearningRequests)}" class="empty-state">
+                    No sent learning requests yet.
+                </div>
+
+                <div th:each="request : ${sentLearningRequests}" class="skill-item">
+                    <div class="skill-item-top">
+                        <h3 th:text="${request.teacher.fullName}">Teacher Name</h3>
+                        <span class="skill-badge secondary" th:text="${request.status}">PENDING</span>
+                    </div>
+
+                    <p class="skill-category" th:text="${request.skill.name}">Skill Name</p>
+                    <p th:text="${request.message != null and !#strings.isEmpty(request.message) ? request.message : 'No message added.'}">
+                        Message
+                    </p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const skillSelect = document.getElementById("skillSelect");
+        const teacherIdField = document.getElementById("teacherIdField");
+
+        if (skillSelect && teacherIdField) {
+            skillSelect.addEventListener("change", function () {
+                const selectedOption = skillSelect.options[skillSelect.selectedIndex];
+                const teacherId = selectedOption.getAttribute("data-teacher-id");
+                teacherIdField.value = teacherId ? teacherId : "";
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

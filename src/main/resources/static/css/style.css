@@ -562,3 +562,21 @@ select option {
         grid-template-columns: 1fr;
     }
 }
+.full-width-card {
+    grid-column: 1 / -1;
+}
+
+.connection-link-btn {
+    display: inline-block;
+    margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+    .full-width-card {
+        grid-column: auto;
+    }
+}
+.connection-link-btn {
+    display: inline-block;
+    margin-top: 12px;
+}

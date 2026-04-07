@@ -9,7 +9,7 @@
     <div class="container">
         <div class="skills-header">
             <h1>Connections</h1>
-            <p>Find people, send connection requests, and build your network.</p>
+            <p>Find people, send connection requests, and grow your network.</p>
         </div>
 
         <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
@@ -34,11 +34,15 @@
                         Headline
                     </p>
 
-                    <p th:text="${user.email}">email@gmail.com</p>
+                    <p th:text="${user.email}">user@email.com</p>
 
                     <form th:action="@{/connections/send/{receiverId}(receiverId=${user.id})}" method="post" class="connection-form">
                         <button type="submit" class="btn btn-primary">Connect</button>
                     </form>
+
+                    <a th:href="@{/learning-requests}" class="btn btn-secondary connection-link-btn">
+                        Request Learning
+                    </a>
                 </div>
             </section>
 
@@ -104,7 +108,11 @@
                         Headline
                     </p>
 
-                    <p th:text="${user.email}">email@gmail.com</p>
+                    <p th:text="${user.email}">user@email.com</p>
+
+                    <a th:href="@{/learning-requests}" class="btn btn-secondary connection-link-btn">
+                        Learn With This User
+                    </a>
                 </div>
             </section>
 
