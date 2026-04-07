@@ -529,3 +529,36 @@ select option {
         grid-template-columns: 1fr;
     }
 }
+.connections-page {
+    min-height: calc(100vh - 140px);
+    padding: 60px 0;
+}
+
+.connections-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.connection-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.connection-form {
+    margin-top: 14px;
+}
+
+.connection-form .btn,
+.connection-actions .btn {
+    border: none;
+    cursor: pointer;
+}
+
+@media (max-width: 900px) {
+    .connections-grid {
+        grid-template-columns: 1fr;
+    }
+}

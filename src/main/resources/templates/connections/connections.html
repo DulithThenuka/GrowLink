@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Connections - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="connections-page">
+    <div class="container">
+        <div class="skills-header">
+            <h1>Connections</h1>
+            <p>Find people, send connection requests, and build your network.</p>
+        </div>
+
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+        <div class="connections-grid">
+
+            <section class="skills-card">
+                <h2>Discover People</h2>
+
+                <div th:if="${#lists.isEmpty(users)}" class="empty-state">
+                    No other users found.
+                </div>
+
+                <div th:each="user : ${users}" class="skill-item">
+                    <div class="skill-item-top">
+                        <h3 th:text="${user.fullName}">User Name</h3>
+                        <span class="skill-badge secondary" th:text="${user.role}">USER</span>
+                    </div>
+
+                    <p class="skill-category"
+                       th:text="${user.headline != null and !#strings.isEmpty(user.headline) ? user.headline : 'No headline added yet.'}">
+                        Headline
+                    </p>
+
+                    <p th:text="${user.email}">email@gmail.com</p>
+
+                    <form th:action="@{/connections/send/{receiverId}(receiverId=${user.id})}" method="post" class="connection-form">
+                        <button type="submit" class="btn btn-primary">Connect</button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="skills-card">
+                <h2>Received Requests</h2>
+
+                <div th:if="${#lists.isEmpty(receivedRequests)}" class="empty-state">
+                    No received requests yet.
+                </div>
+
+                <div th:each="request : ${receivedRequests}" class="skill-item">
+                    <div class="skill-item-top">
+                        <h3 th:text="${request.sender.fullName}">Sender Name</h3>
+                        <span class="skill-badge" th:text="${request.status}">PENDING</span>
+                    </div>
+
+                    <p th:text="${request.sender.email}">sender@email.com</p>
+
+                    <div th:if="${request.status.name() == 'PENDING'}" class="connection-actions">
+                        <form th:action="@{/connections/accept/{requestId}(requestId=${request.id})}" method="post">
+                            <button type="submit" class="btn btn-primary">Accept</button>
+                        </form>
+
+                        <form th:action="@{/connections/reject/{requestId}(requestId=${request.id})}" method="post">
+                            <button type="submit" class="btn btn-secondary">Reject</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section class="skills-card">
+                <h2>Sent Requests</h2>
+
+                <div th:if="${#lists.isEmpty(sentRequests)}" class="empty-state">
+                    No sent requests yet.
+                </div>
+
+                <div th:each="request : ${sentRequests}" class="skill-item">
+                    <div class="skill-item-top">
+                        <h3 th:text="${request.receiver.fullName}">Receiver Name</h3>
+                        <span class="skill-badge secondary" th:text="${request.status}">PENDING</span>
+                    </div>
+
+                    <p th:text="${request.receiver.email}">receiver@email.com</p>
+                </div>
+            </section>
+
+            <section class="skills-card">
+                <h2>My Connections</h2>
+
+                <div th:if="${#lists.isEmpty(acceptedConnections)}" class="empty-state">
+                    You have no accepted connections yet.
+                </div>
+
+                <div th:each="user : ${acceptedConnections}" class="skill-item">
+                    <div class="skill-item-top">
+                        <h3 th:text="${user.fullName}">Connected User</h3>
+                        <span class="skill-badge">CONNECTED</span>
+                    </div>
+
+                    <p class="skill-category"
+                       th:text="${user.headline != null and !#strings.isEmpty(user.headline) ? user.headline : 'No headline added yet.'}">
+                        Headline
+                    </p>
+
+                    <p th:text="${user.email}">email@gmail.com</p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>
