@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('My Skills - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="skills-page">
+    <div class="container">
+        <div class="skills-header">
+            <h1>My Skills</h1>
+            <p>Add what you can teach and what you want to learn.</p>
+        </div>
+
+        <div th:if="${param.teachSuccess}" class="alert alert-success">
+            Teach skill added successfully.
+        </div>
+
+        <div th:if="${param.learnSuccess}" class="alert alert-success">
+            Learn skill added successfully.
+        </div>
+
+        <div class="skills-layout">
+
+            <section class="skills-card">
+                <h2>Add a Skill You Can Teach</h2>
+
+                <form th:action="@{/skills/teach}" th:object="${teachSkillDto}" method="post" class="auth-form">
+                    <div class="form-group">
+                        <label>Skill Name</label>
+                        <input type="text" th:field="*{skillName}" placeholder="Example: Java">
+                        <small class="field-error" th:if="${#fields.hasErrors('teachSkillDto.skillName')}" th:errors="*{skillName}"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" th:field="*{category}" placeholder="Example: Programming">
+                        <small class="field-error" th:if="${#fields.hasErrors('teachSkillDto.category')}" th:errors="*{category}"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Skill Level</label>
+                        <select th:field="*{level}">
+                            <option value="">Select level</option>
+                            <option th:each="level : ${skillLevels}" th:value="${level}" th:text="${level}"></option>
+                        </select>
+                        <small class="field-error" th:if="${#fields.hasErrors('teachSkillDto.level')}" th:errors="*{level}"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Experience</label>
+                        <input type="text" th:field="*{experienceText}" placeholder="Example: Built 3 Java projects">
+                        <small class="field-error" th:if="${#fields.hasErrors('teachSkillDto.experienceText')}" th:errors="*{experienceText}"></small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary auth-btn">Add Teach Skill</button>
+                </form>
+            </section>
+
+            <section class="skills-card">
+                <h2>Add a Skill You Want to Learn</h2>
+
+                <form th:action="@{/skills/learn}" th:object="${learnSkillDto}" method="post" class="auth-form">
+                    <div class="form-group">
+                        <label>Skill Name</label>
+                        <input type="text" th:field="*{skillName}" placeholder="Example: UI/UX Design">
+                        <small class="field-error" th:if="${#fields.hasErrors('learnSkillDto.skillName')}" th:errors="*{skillName}"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" th:field="*{category}" placeholder="Example: Design">
+                        <small class="field-error" th:if="${#fields.hasErrors('learnSkillDto.category')}" th:errors="*{category}"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Target Level</label>
+                        <select th:field="*{targetLevel}">
+                            <option value="">Select target level</option>
+                            <option th:each="level : ${skillLevels}" th:value="${level}" th:text="${level}"></option>
+                        </select>
+                        <small class="field-error" th:if="${#fields.hasErrors('learnSkillDto.targetLevel')}" th:errors="*{targetLevel}"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Note</label>
+                        <input type="text" th:field="*{note}" placeholder="Example: I want to learn from beginner level">
+                        <small class="field-error" th:if="${#fields.hasErrors('learnSkillDto.note')}" th:errors="*{note}"></small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary auth-btn">Add Learn Skill</button>
+                </form>
+            </section>
+        </div>
+
+        <div class="skills-display-grid">
+            <section class="skills-card">
+                <h2>Skills I Can Teach</h2>
+
+                <div th:if="${#lists.isEmpty(teachSkills)}" class="empty-state">
+                    You have not added any teach skills yet.
+                </div>
+
+                <div th:each="item : ${teachSkills}" class="skill-item">
+                    <div class="skill-item-top">
+                        <h3 th:text="${item.skill.name}">Java</h3>
+                        <span class="skill-badge" th:text="${item.level}">ADVANCED</span>
+                    </div>
+                    <p class="skill-category"
+                       th:text="${item.skill.category != null and !#strings.isEmpty(item.skill.category) ? item.skill.category : 'No category'}">
+                        Programming
+                    </p>
+                    <p th:text="${item.experienceText != null and !#strings.isEmpty(item.experienceText) ? item.experienceText : 'No experience text added.'}">
+                        Experience text
+                    </p>
+                </div>
+            </section>
+
+            <section class="skills-card">
+                <h2>Skills I Want to Learn</h2>
+
+                <div th:if="${#lists.isEmpty(learnSkills)}" class="empty-state">
+                    You have not added any learn skills yet.
+                </div>
+
+                <div th:each="item : ${learnSkills}" class="skill-item">
+                    <div class="skill-item-top">
+                        <h3 th:text="${item.skill.name}">UI/UX Design</h3>
+                        <span class="skill-badge secondary" th:text="${item.targetLevel}">BEGINNER</span>
+                    </div>
+                    <p class="skill-category"
+                       th:text="${item.skill.category != null and !#strings.isEmpty(item.skill.category) ? item.skill.category : 'No category'}">
+                        Design
+                    </p>
+                    <p th:text="${item.note != null and !#strings.isEmpty(item.note) ? item.note : 'No note added.'}">
+                        Learn note
+                    </p>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

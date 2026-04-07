@@ -389,3 +389,143 @@ textarea:focus {
         grid-template-columns: 1fr;
     }
 }
+select {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    outline: none;
+    font-family: inherit;
+}
+
+select:focus {
+    border-color: #7c5cff;
+    box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
+}
+
+select option {
+    background: #10182d;
+    color: #ffffff;
+}
+
+.skills-page {
+    min-height: calc(100vh - 140px);
+    padding: 60px 0;
+}
+
+.skills-header {
+    margin-bottom: 28px;
+}
+
+.skills-header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+}
+
+.skills-header p {
+    color: #c7d4f5;
+}
+
+.skills-layout,
+.skills-display-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.skills-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(12px);
+}
+
+.skills-card h2 {
+    margin-bottom: 18px;
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.skill-item {
+    padding: 18px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    margin-bottom: 16px;
+}
+
+.skill-item:last-child {
+    margin-bottom: 0;
+}
+
+.skill-item-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.skill-item-top h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.skill-badge {
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #5b8cff, #7c5cff);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.skill-badge.secondary {
+    background: linear-gradient(135deg, #1ea7ff, #14b8a6);
+}
+
+.skill-category {
+    color: #8ab4ff;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.empty-state {
+    padding: 18px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #c7d4f5;
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.logout-form {
+    display: inline;
+}
+
+.logout-btn {
+    background: none;
+    border: none;
+    color: #dbe6ff;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 0;
+}
+
+.logout-btn:hover {
+    color: #8ab4ff;
+}
+
+@media (max-width: 900px) {
+    .skills-layout,
+    .skills-display-grid {
+        grid-template-columns: 1fr;
+    }
+}
