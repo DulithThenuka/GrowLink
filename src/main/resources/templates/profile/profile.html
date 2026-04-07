@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('My Profile - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="profile-page">
+    <div class="container">
+        <div class="profile-card">
+            <div class="profile-top">
+                <div class="profile-avatar">
+                    <span th:text="${#strings.substring(user.fullName,0,1)}">U</span>
+                </div>
+
+                <div class="profile-main-info">
+                    <h1 th:text="${user.fullName}">User Name</h1>
+                    <p class="profile-headline"
+                       th:text="${user.headline != null and !#strings.isEmpty(user.headline) ? user.headline : 'No headline added yet.'}">
+                        No headline added yet.
+                    </p>
+                    <p class="profile-email" th:text="${user.email}">user@email.com</p>
+                </div>
+            </div>
+
+            <div class="profile-grid">
+                <div class="profile-section">
+                    <h3>Location</h3>
+                    <p th:text="${user.location != null and !#strings.isEmpty(user.location) ? user.location : 'No location added yet.'}">
+                        No location added yet.
+                    </p>
+                </div>
+
+                <div class="profile-section">
+                    <h3>Role</h3>
+                    <p th:text="${user.role}">USER</p>
+                </div>
+
+                <div class="profile-section full-width">
+                    <h3>Bio</h3>
+                    <p th:text="${user.bio != null and !#strings.isEmpty(user.bio) ? user.bio : 'No bio added yet.'}">
+                        No bio added yet.
+                    </p>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <a th:href="@{/profile/edit}" class="btn btn-primary">Edit Profile</a>
+                <a th:href="@{/dashboard}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

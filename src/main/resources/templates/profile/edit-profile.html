@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Edit Profile - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="auth-page">
+    <div class="auth-card profile-edit-card">
+        <h2>Edit Profile</h2>
+        <p>Update your GrowLink identity and let people know who you are.</p>
+
+        <div th:replace="~{fragments/alerts :: alerts}"></div>
+
+        <form th:action="@{/profile/edit}" th:object="${profileUpdateDto}" method="post" class="auth-form">
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" th:field="*{fullName}" placeholder="Enter your full name">
+                <small class="field-error"
+                       th:if="${#fields.hasErrors('fullName')}"
+                       th:errors="*{fullName}"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Headline</label>
+                <input type="text" th:field="*{headline}" placeholder="Example: Java learner and future builder">
+                <small class="field-error"
+                       th:if="${#fields.hasErrors('headline')}"
+                       th:errors="*{headline}"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" th:field="*{location}" placeholder="Enter your location">
+                <small class="field-error"
+                       th:if="${#fields.hasErrors('location')}"
+                       th:errors="*{location}"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Bio</label>
+                <textarea th:field="*{bio}" rows="6" placeholder="Tell people about yourself, your goals, and what you want to build."></textarea>
+                <small class="field-error"
+                       th:if="${#fields.hasErrors('bio')}"
+                       th:errors="*{bio}"></small>
+            </div>
+
+            <button type="submit" class="btn btn-primary auth-btn">Save Changes</button>
+        </form>
+
+        <p class="auth-switch">
+            <a th:href="@{/profile}">Back to profile</a>
+        </p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

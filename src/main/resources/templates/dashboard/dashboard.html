@@ -9,7 +9,12 @@
     <div class="container">
         <div class="dashboard-card">
             <h1>Welcome to GrowLink</h1>
-            <p>You are logged in successfully. Your platform is now ready for the next phase.</p>
+            <p>Your account is ready. Now build your identity, add your skills, and start connecting with people.</p>
+
+            <div class="dashboard-actions">
+                <a th:href="@{/profile}" class="btn btn-primary">View Profile</a>
+                <a th:href="@{/profile/edit}" class="btn btn-secondary">Edit Profile</a>
+            </div>
         </div>
     </div>
 </main>
