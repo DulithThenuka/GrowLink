@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Report User - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="auth-page">
+    <div class="auth-card profile-edit-card">
+        <h2>Report User</h2>
+        <p>
+            You are reporting:
+            <strong th:text="${reportedUser.fullName}">User Name</strong>
+        </p>
+
+        <form th:action="@{/reports/submit}" th:object="${reportDto}" method="post" class="auth-form">
+            <input type="hidden" th:field="*{reportedUserId}">
+
+            <div class="form-group">
+                <label>Reason</label>
+                <input type="text" th:field="*{reason}" placeholder="Enter report reason">
+                <small class="field-error" th:if="${#fields.hasErrors('reason')}" th:errors="*{reason}"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Details</label>
+                <textarea th:field="*{details}" rows="6" placeholder="Explain what happened"></textarea>
+                <small class="field-error" th:if="${#fields.hasErrors('details')}" th:errors="*{details}"></small>
+            </div>
+
+            <button type="submit" class="btn btn-primary auth-btn">Submit Report</button>
+        </form>
+
+        <p class="auth-switch">
+            <a th:href="@{/profile}">Back</a>
+        </p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

@@ -1,99 +1,111 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Projects - GrowLink')}"></head>
+<head th:replace="~{fragments/head :: head('Profile - GrowLink')}"></head>
 <body>
 
 <header th:replace="~{fragments/navbar :: navbar}"></header>
 
-<main class="projects-page">
+<main class="profile-page">
     <div class="container">
-        <div class="skills-header">
-            <h1>Projects</h1>
-            <p>Create projects, join teams, and build real things together.</p>
-        </div>
 
+        <!-- SUCCESS MESSAGE -->
         <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
 
-        <div class="project-top-actions">
-            <a th:href="@{/projects/create}" class="btn btn-primary">Create Project</a>
-        </div>
+        <!-- PROFILE CARD -->
+        <section class="skills-card profile-card">
 
-        <div class="projects-grid">
+            <div class="profile-top">
+                <div class="profile-info">
+                    <h1 th:text="${user.fullName}">Full Name</h1>
 
-            <section class="skills-card">
-                <h2>All Projects</h2>
+                    <p class="profile-headline"
+                       th:text="${user.headline != null and !#strings.isEmpty(user.headline) ? user.headline : 'No headline added yet.'}">
+                        Headline
+                    </p>
 
-                <div th:if="${#lists.isEmpty(allProjects)}" class="empty-state">
-                    No projects yet.
+                    <p class="profile-location"
+                       th:text="${user.location != null and !#strings.isEmpty(user.location) ? user.location : 'No location added.'}">
+                        Location
+                    </p>
+
+                    <p class="profile-email" th:text="${user.email}">email@gmail.com</p>
                 </div>
 
-                <div th:each="project : ${allProjects}" class="project-item">
-                    <h3 th:text="${project.title}">Project Title</h3>
-                    <p class="skill-category"
-                       th:text="${project.category != null and !#strings.isEmpty(project.category) ? project.category : 'No category'}">
-                        Category
-                    </p>
-                    <p class="project-owner">
-                        Owner:
-                        <span th:text="${project.owner.fullName}">Owner Name</span>
-                    </p>
-                    <p class="project-desc"
-                       th:text="${#strings.length(project.description) > 180 ? #strings.substring(project.description, 0, 180) + '...' : project.description}">
-                        Description
-                    </p>
-                    <div class="project-status-row">
-                        <span class="skill-badge" th:text="${project.status}">OPEN</span>
+                <div class="profile-actions">
+                    <a th:href="@{/profile/edit}" class="btn btn-primary">Edit Profile</a>
+                    <a th:href="@{/connections}" class="btn btn-secondary">Connections</a>
+                    <a th:href="@{/reports/user/{userId}(userId=${user.id})}" class="btn btn-secondary">Report User</a>
+                    <a th:href="@{/dashboard}" class="btn btn-secondary">Dashboard</a>
+                </div>
+            </div>
+
+            <!-- BIO -->
+            <div class="profile-bio-box">
+                <h3>About</h3>
+                <p th:text="${user.bio != null and !#strings.isEmpty(user.bio) ? user.bio : 'No bio added yet.'}">
+                    Bio
+                </p>
+            </div>
+
+        </section>
+
+        <!-- SKILLS SECTION -->
+        <div class="profile-skills-grid">
+
+            <!-- TEACH SKILLS -->
+            <section class="skills-card">
+                <h2>Skills I Teach</h2>
+
+                <div th:if="${#lists.isEmpty(teachSkills)}" class="empty-state">
+                    No teaching skills added yet.
+                </div>
+
+                <div th:each="skill : ${teachSkills}" class="skill-item">
+                    <div class="skill-item-top">
+                        <h3 th:text="${skill.skill.name}">Skill Name</h3>
+                        <span class="skill-badge">TEACH</span>
                     </div>
-                    <a th:href="@{/projects/{projectId}(projectId=${project.id})}" class="btn btn-secondary project-link-btn">
-                        View Details
-                    </a>
-                </div>
-            </section>
 
-            <section class="skills-card">
-                <h2>My Created Projects</h2>
-
-                <div th:if="${#lists.isEmpty(myProjects)}" class="empty-state">
-                    You have not created any projects yet.
-                </div>
-
-                <div th:each="project : ${myProjects}" class="project-item">
-                    <h3 th:text="${project.title}">Project Title</h3>
                     <p class="skill-category"
-                       th:text="${project.category != null and !#strings.isEmpty(project.category) ? project.category : 'No category'}">
+                       th:text="${skill.skill.category != null ? skill.skill.category : 'General'}">
                         Category
                     </p>
-                    <p class="project-desc"
-                       th:text="${#strings.length(project.description) > 140 ? #strings.substring(project.description, 0, 140) + '...' : project.description}">
+
+                    <p th:if="${skill.description != null}"
+                       th:text="${skill.description}">
                         Description
                     </p>
-                    <a th:href="@{/projects/{projectId}(projectId=${project.id})}" class="btn btn-primary project-link-btn">
-                        Manage Project
-                    </a>
                 </div>
             </section>
 
-            <section class="skills-card full-width-card">
-                <h2>Projects I Joined</h2>
+            <!-- LEARN SKILLS -->
+            <section class="skills-card">
+                <h2>Skills I Want to Learn</h2>
 
-                <div th:if="${#lists.isEmpty(joinedProjects)}" class="empty-state">
-                    You have not joined any projects yet.
+                <div th:if="${#lists.isEmpty(learnSkills)}" class="empty-state">
+                    No learning skills added yet.
                 </div>
 
-                <div th:each="member : ${joinedProjects}" class="project-item">
-                    <h3 th:text="${member.project.title}">Project Title</h3>
-                    <p class="skill-category" th:text="${member.role}">MEMBER</p>
-                    <p class="project-owner">
-                        Owner:
-                        <span th:text="${member.project.owner.fullName}">Owner Name</span>
+                <div th:each="skill : ${learnSkills}" class="skill-item">
+                    <div class="skill-item-top">
+                        <h3 th:text="${skill.skill.name}">Skill Name</h3>
+                        <span class="skill-badge secondary">LEARN</span>
+                    </div>
+
+                    <p class="skill-category"
+                       th:text="${skill.skill.category != null ? skill.skill.category : 'General'}">
+                        Category
                     </p>
-                    <a th:href="@{/projects/{projectId}(projectId=${member.project.id})}" class="btn btn-secondary project-link-btn">
-                        Open Project
-                    </a>
+
+                    <p th:if="${skill.description != null}"
+                       th:text="${skill.description}">
+                        Description
+                    </p>
                 </div>
             </section>
 
         </div>
+
     </div>
 </main>
 

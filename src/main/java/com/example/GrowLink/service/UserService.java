@@ -1,10 +1,12 @@
 package com.example.GrowLink.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.GrowLink.dto.ProfileUpdateDto;
 import com.example.GrowLink.dto.RegisterDto;
@@ -30,6 +32,11 @@ public class UserService {
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
     }
 
     public boolean emailExists(String email) {
@@ -67,6 +74,32 @@ public class UserService {
         user.setLocation(profileUpdateDto.getLocation());
         user.setBio(profileUpdateDto.getBio());
 
+        userRepository.save(user);
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public long getTotalUsers() {
+        return userRepository.count();
+    }
+
+    public long getDisabledUserCount() {
+        return userRepository.countByEnabledFalse();
+    }
+
+    @Transactional
+    public void disableUser(Long userId) {
+        User user = getUserById(userId);
+        user.setEnabled(false);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void enableUser(Long userId) {
+        User user = getUserById(userId);
+        user.setEnabled(true);
         userRepository.save(user);
     }
 }

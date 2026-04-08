@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Admin Dashboard - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="dashboard-page">
+    <div class="container">
+        <div class="dashboard-wrapper">
+            <div class="dashboard-card">
+                <h1>Admin Dashboard</h1>
+                <p>Monitor platform activity, user accounts, and moderation reports.</p>
+
+                <div class="dashboard-actions">
+                    <a th:href="@{/admin/users}" class="btn btn-primary">Manage Users</a>
+                    <a th:href="@{/admin/reports}" class="btn btn-secondary">Manage Reports</a>
+                </div>
+            </div>
+
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3>Total Users</h3>
+                    <p th:text="${totalUsers}">0</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Disabled Users</h3>
+                    <p th:text="${disabledUsers}">0</p>
+                </div>
+
+                <div class="stat-card highlight">
+                    <h3>Total Reports</h3>
+                    <p th:text="${totalReports}">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

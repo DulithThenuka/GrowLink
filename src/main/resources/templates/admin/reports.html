@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Manage Reports - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="projects-page">
+    <div class="container">
+        <div class="skills-header">
+            <h1>Manage Reports</h1>
+            <p>Review user reports and moderation actions.</p>
+        </div>
+
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+        <section class="skills-card">
+            <div th:if="${#lists.isEmpty(reports)}" class="empty-state">
+                No reports found.
+            </div>
+
+            <div th:each="report : ${reports}" class="project-item">
+                <h3 th:text="${report.reason}">Reason</h3>
+                <p>
+                    Reporter:
+                    <span th:text="${report.reporter.fullName}">Reporter</span>
+                </p>
+                <p>
+                    Reported User:
+                    <span th:text="${report.reportedUser.fullName}">Reported User</span>
+                </p>
+                <p th:text="${report.details != null and !#strings.isEmpty(report.details) ? report.details : 'No extra details provided.'}">
+                    Details
+                </p>
+                <p class="skill-category" th:text="${report.status}">PENDING</p>
+
+                <div class="connection-actions" th:if="${report.status.name() == 'PENDING'}">
+                    <form th:action="@{/admin/reports/{reportId}/review(reportId=${report.id})}" method="post">
+                        <button type="submit" class="btn btn-secondary">Mark Reviewed</button>
+                    </form>
+
+                    <form th:action="@{/admin/reports/{reportId}/resolve(reportId=${report.id})}" method="post">
+                        <button type="submit" class="btn btn-primary">Resolve</button>
+                    </form>
+
+                    <form th:action="@{/admin/reports/{reportId}/reject(reportId=${report.id})}" method="post">
+                        <button type="submit" class="btn btn-secondary">Reject</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

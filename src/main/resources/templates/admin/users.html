@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Manage Users - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="projects-page">
+    <div class="container">
+        <div class="skills-header">
+            <h1>Manage Users</h1>
+            <p>Enable or disable user accounts.</p>
+        </div>
+
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+        <section class="skills-card">
+            <div th:if="${#lists.isEmpty(users)}" class="empty-state">
+                No users found.
+            </div>
+
+            <div th:each="user : ${users}" class="project-item">
+                <h3 th:text="${user.fullName}">User Name</h3>
+                <p th:text="${user.email}">user@email.com</p>
+                <p class="skill-category" th:text="${user.role}">USER</p>
+                <p>
+                    Status:
+                    <strong th:text="${user.enabled ? 'ENABLED' : 'DISABLED'}">ENABLED</strong>
+                </p>
+
+                <div class="connection-actions">
+                    <form th:if="${user.enabled}" th:action="@{/admin/users/{userId}/disable(userId=${user.id})}" method="post">
+                        <button type="submit" class="btn btn-secondary">Disable</button>
+                    </form>
+
+                    <form th:if="${!user.enabled}" th:action="@{/admin/users/{userId}/enable(userId=${user.id})}" method="post">
+                        <button type="submit" class="btn btn-primary">Enable</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>
