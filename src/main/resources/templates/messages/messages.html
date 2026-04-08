@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Messages - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="messages-page">
+    <div class="container">
+        <div class="skills-header">
+            <h1>Messages</h1>
+            <p>Talk to people, continue learning, and collaborate better.</p>
+        </div>
+
+        <div th:if="${flashMessage}" class="alert alert-success" th:text="${flashMessage}"></div>
+
+        <div class="messages-layout">
+            <aside class="messages-sidebar">
+                <div class="skills-card">
+                    <h2>Start New Chat</h2>
+
+                    <div th:if="${#lists.isEmpty(allUsers)}" class="empty-state">
+                        No users found.
+                    </div>
+
+                    <div th:each="user : ${allUsers}" class="chat-user-item">
+                        <a th:href="@{/messages(userId=${user.id})}" class="chat-user-link">
+                            <div>
+                                <strong th:text="${user.fullName}">User Name</strong>
+                                <p th:text="${user.email}">user@email.com</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="skills-card">
+                    <h2>Recent Conversations</h2>
+
+                    <div th:if="${#lists.isEmpty(conversationUsers)}" class="empty-state">
+                        No conversations yet.
+                    </div>
+
+                    <div th:each="user : ${conversationUsers}" class="chat-user-item">
+                        <a th:href="@{/messages(userId=${user.id})}" class="chat-user-link">
+                            <div>
+                                <strong th:text="${user.fullName}">User Name</strong>
+                                <p th:text="${user.headline != null and !#strings.isEmpty(user.headline) ? user.headline : user.email}">
+                                    headline or email
+                                </p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="skills-card chat-main">
+                <div th:if="${selectedUserId == null}" class="empty-state">
+                    Select a user to start chatting.
+                </div>
+
+                <div th:if="${selectedUserId != null}">
+                    <h2>Conversation</h2>
+
+                    <div class="chat-box">
+                        <div th:if="${#lists.isEmpty(messages)}" class="empty-state">
+                            No messages yet. Send the first message.
+                        </div>
+
+                        <div th:each="msg : ${messages}"
+                             th:classappend="${msg.sender.email == #authentication.name} ? ' my-message' : ' other-message'"
+                             class="message-bubble">
+                            <div class="message-meta">
+                                <strong th:text="${msg.sender.fullName}">Sender</strong>
+                                <span th:text="${#temporals.format(msg.sentAt, 'yyyy-MM-dd HH:mm')}">time</span>
+                            </div>
+                            <p th:text="${msg.messageText}">Message text</p>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/messages/send}" method="post" class="chat-form">
+                        <input type="hidden" name="receiverId" th:value="${selectedUserId}">
+                        <textarea name="messageText" rows="4" placeholder="Type your message here..." required></textarea>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>
