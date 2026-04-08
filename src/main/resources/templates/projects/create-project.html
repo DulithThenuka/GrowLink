@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Create Project - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="auth-page">
+    <div class="auth-card profile-edit-card">
+        <h2>Create Project</h2>
+        <p>Start a project and invite the right people to build it with you.</p>
+
+        <form th:action="@{/projects/save}" th:object="${projectDto}" method="post" class="auth-form">
+
+            <div class="form-group">
+                <label>Project Title</label>
+                <input type="text" th:field="*{title}" placeholder="Enter project title">
+                <small class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Category</label>
+                <input type="text" th:field="*{category}" placeholder="Example: Web App / AI / Education / Startup">
+                <small class="field-error" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea th:field="*{description}" rows="8" placeholder="Describe your project idea, goal, and what you want to build."></textarea>
+                <small class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
+            </div>
+
+            <button type="submit" class="btn btn-primary auth-btn">Create Project</button>
+        </form>
+
+        <p class="auth-switch">
+            <a th:href="@{/projects}">Back to Projects</a>
+        </p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

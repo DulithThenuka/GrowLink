@@ -43,4 +43,10 @@ public class NotificationService {
 
         notificationRepository.save(notification);
     }
+
+    @Transactional
+    public void createNotificationByEmail(String email, String title, String message, NotificationType type) {
+        User user = userService.getUserByEmail(email);
+        createNotification(user, title, message, type);
+    }
 }

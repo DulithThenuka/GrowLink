@@ -2,81 +2,203 @@ package com.example.GrowLink.service;
 
 import java.util.List;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.GrowLink.dto.ProjectDto;
-import com.example.GrowLink.entity.*;
+import com.example.GrowLink.entity.Project;
+import com.example.GrowLink.entity.ProjectJoinRequest;
+import com.example.GrowLink.entity.ProjectMember;
+import com.example.GrowLink.entity.User;
+import com.example.GrowLink.enums.NotificationType;
 import com.example.GrowLink.enums.ProjectRole;
+import com.example.GrowLink.enums.ProjectStatus;
 import com.example.GrowLink.enums.RequestStatus;
-import com.example.GrowLink.repository.*;
+import com.example.GrowLink.repository.ProjectJoinRequestRepository;
+import com.example.GrowLink.repository.ProjectMemberRepository;
+import com.example.GrowLink.repository.ProjectRepository;
 
 @Service
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
-    private final ProjectMemberRepository memberRepository;
-    private final ProjectJoinRequestRepository requestRepository;
+    private final ProjectJoinRequestRepository projectJoinRequestRepository;
+    private final ProjectMemberRepository projectMemberRepository;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     public ProjectService(ProjectRepository projectRepository,
-                          ProjectMemberRepository memberRepository,
-                          ProjectJoinRequestRepository requestRepository,
-                          UserService userService) {
+                          ProjectJoinRequestRepository projectJoinRequestRepository,
+                          ProjectMemberRepository projectMemberRepository,
+                          UserService userService,
+                          NotificationService notificationService) {
         this.projectRepository = projectRepository;
-        this.memberRepository = memberRepository;
-        this.requestRepository = requestRepository;
+        this.projectJoinRequestRepository = projectJoinRequestRepository;
+        this.projectMemberRepository = projectMemberRepository;
         this.userService = userService;
+        this.notificationService = notificationService;
     }
 
     public List<Project> getAllProjects() {
         return projectRepository.findAll();
     }
 
-    public void createProject(String email, ProjectDto dto) {
+    public List<Project> getProjectsByOwnerEmail(String email) {
+        User owner = userService.getUserByEmail(email);
+        return projectRepository.findByOwner(owner);
+    }
+
+    public List<ProjectJoinRequest> getJoinRequestsByProjectId(Long projectId) {
+        Project project = getProjectById(projectId);
+        return projectJoinRequestRepository.findByProject(project);
+    }
+
+    public List<ProjectMember> getMembersByProjectId(Long projectId) {
+        Project project = getProjectById(projectId);
+        return projectMemberRepository.findByProject(project);
+    }
+
+    public List<ProjectMember> getProjectsJoinedByUserEmail(String email) {
         User user = userService.getUserByEmail(email);
+        return projectMemberRepository.findByUser(user);
+    }
+
+    public Project getProjectById(Long id) {
+        return projectRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Project not found."));
+    }
+
+    public boolean isOwner(String email, Long projectId) {
+        Project project = getProjectById(projectId);
+        return project.getOwner().getEmail().equals(email);
+    }
+
+    public boolean isMember(String email, Long projectId) {
+        User user = userService.getUserByEmail(email);
+        Project project = getProjectById(projectId);
+        return projectMemberRepository.findByProjectAndUser(project, user).isPresent();
+    }
+
+    @Transactional
+    public void createProject(String email, ProjectDto dto) {
+        User owner = userService.getUserByEmail(email);
 
         Project project = new Project();
-        project.setTitle(dto.getTitle());
-        project.setDescription(dto.getDescription());
-        project.setCategory(dto.getCategory());
-        project.setStatus("OPEN");
-        project.setOwner(user);
+        project.setTitle(dto.getTitle().trim());
+        project.setDescription(dto.getDescription().trim());
+        project.setCategory(dto.getCategory() != null ? dto.getCategory().trim() : null);
+        project.setStatus(ProjectStatus.OPEN);
+        project.setOwner(owner);
 
         projectRepository.save(project);
 
+        ProjectMember ownerMember = new ProjectMember();
+        ownerMember.setProject(project);
+        ownerMember.setUser(owner);
+        ownerMember.setRole(ProjectRole.OWNER);
+
+        projectMemberRepository.save(ownerMember);
+    }
+
+    @Transactional
+    public String sendJoinRequest(String email, Long projectId) {
+        User user = userService.getUserByEmail(email);
+        Project project = getProjectById(projectId);
+
+        if (project.getOwner().getId().equals(user.getId())) {
+            return "You are already the owner of this project.";
+        }
+
+        if (project.getStatus() != ProjectStatus.OPEN) {
+            return "This project is not open for joining.";
+        }
+
+        if (projectMemberRepository.findByProjectAndUser(project, user).isPresent()) {
+            return "You are already a member of this project.";
+        }
+
+        if (projectJoinRequestRepository.findByProjectAndUser(project, user).isPresent()) {
+            return "You already sent a join request for this project.";
+        }
+
+        ProjectJoinRequest joinRequest = new ProjectJoinRequest();
+        joinRequest.setProject(project);
+        joinRequest.setUser(user);
+        joinRequest.setStatus(RequestStatus.PENDING);
+
+        projectJoinRequestRepository.save(joinRequest);
+
+        notificationService.createNotification(
+                project.getOwner(),
+                "New Project Join Request",
+                user.getFullName() + " requested to join your project: " + project.getTitle(),
+                NotificationType.SYSTEM
+        );
+
+        return "Join request sent successfully.";
+    }
+
+    @Transactional
+    public String acceptJoinRequest(String ownerEmail, Long requestId) {
+        ProjectJoinRequest request = projectJoinRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Join request not found."));
+
+        Project project = request.getProject();
+
+        if (!project.getOwner().getEmail().equals(ownerEmail)) {
+            throw new AccessDeniedException("You are not allowed to manage this request.");
+        }
+
+        if (request.getStatus() != RequestStatus.PENDING) {
+            return "This join request has already been processed.";
+        }
+
+        request.setStatus(RequestStatus.ACCEPTED);
+        projectJoinRequestRepository.save(request);
+
         ProjectMember member = new ProjectMember();
         member.setProject(project);
-        member.setUser(user);
-        member.setRole(ProjectRole.OWNER);
-
-        memberRepository.save(member);
-    }
-
-    public void joinProject(String email, Long projectId) {
-        User user = userService.getUserByEmail(email);
-        Project project = projectRepository.findById(projectId).orElse(null);
-
-        if (project == null) return;
-
-        ProjectJoinRequest req = new ProjectJoinRequest();
-        req.setProject(project);
-        req.setUser(user);
-        req.setStatus(RequestStatus.PENDING);
-
-        requestRepository.save(req);
-    }
-
-    public void acceptRequest(Long requestId) {
-        ProjectJoinRequest req = requestRepository.findById(requestId).orElse(null);
-        if (req == null) return;
-
-        req.setStatus(RequestStatus.ACCEPTED);
-
-        ProjectMember member = new ProjectMember();
-        member.setProject(req.getProject());
-        member.setUser(req.getUser());
+        member.setUser(request.getUser());
         member.setRole(ProjectRole.MEMBER);
 
-        memberRepository.save(member);
+        projectMemberRepository.save(member);
+
+        notificationService.createNotification(
+                request.getUser(),
+                "Project Request Accepted",
+                "You were accepted into the project: " + project.getTitle(),
+                NotificationType.SYSTEM
+        );
+
+        return "Join request accepted.";
+    }
+
+    @Transactional
+    public String rejectJoinRequest(String ownerEmail, Long requestId) {
+        ProjectJoinRequest request = projectJoinRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Join request not found."));
+
+        Project project = request.getProject();
+
+        if (!project.getOwner().getEmail().equals(ownerEmail)) {
+            throw new AccessDeniedException("You are not allowed to manage this request.");
+        }
+
+        if (request.getStatus() != RequestStatus.PENDING) {
+            return "This join request has already been processed.";
+        }
+
+        request.setStatus(RequestStatus.REJECTED);
+        projectJoinRequestRepository.save(request);
+
+        notificationService.createNotification(
+                request.getUser(),
+                "Project Request Rejected",
+                "Your join request for the project \"" + project.getTitle() + "\" was rejected.",
+                NotificationType.SYSTEM
+        );
+
+        return "Join request rejected.";
     }
 }

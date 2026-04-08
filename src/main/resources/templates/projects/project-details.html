@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Project Details - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="projects-page">
+    <div class="container">
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+        <section class="skills-card project-details-card">
+            <div class="project-header-top">
+                <div>
+                    <h1 th:text="${project.title}">Project Title</h1>
+                    <p class="skill-category"
+                       th:text="${project.category != null and !#strings.isEmpty(project.category) ? project.category : 'No category'}">
+                        Category
+                    </p>
+                </div>
+
+                <span class="skill-badge" th:text="${project.status}">OPEN</span>
+            </div>
+
+            <p class="project-owner">
+                Owner:
+                <span th:text="${project.owner.fullName}">Owner Name</span>
+            </p>
+
+            <div class="project-description-box">
+                <h3>Description</h3>
+                <p th:text="${project.description}">Project description</p>
+            </div>
+
+            <div class="project-main-actions">
+                <a th:href="@{/projects}" class="btn btn-secondary">Back to Projects</a>
+
+                <form th:if="${!isOwner and !isMember}" th:action="@{/projects/{projectId}/join(projectId=${project.id})}" method="post">
+                    <button type="submit" class="btn btn-primary">Request to Join</button>
+                </form>
+            </div>
+        </section>
+
+        <div class="projects-grid">
+
+            <section class="skills-card">
+                <h2>Members</h2>
+
+                <div th:if="${#lists.isEmpty(members)}" class="empty-state">
+                    No members yet.
+                </div>
+
+                <div th:each="member : ${members}" class="project-item">
+                    <h3 th:text="${member.user.fullName}">Member Name</h3>
+                    <p class="skill-category" th:text="${member.role}">OWNER</p>
+                    <p th:text="${member.user.email}">user@email.com</p>
+                </div>
+            </section>
+
+            <section th:if="${isOwner}" class="skills-card">
+                <h2>Join Requests</h2>
+
+                <div th:if="${#lists.isEmpty(joinRequests)}" class="empty-state">
+                    No join requests yet.
+                </div>
+
+                <div th:each="request : ${joinRequests}" class="project-item">
+                    <h3 th:text="${request.user.fullName}">User Name</h3>
+                    <p th:text="${request.user.email}">user@email.com</p>
+                    <p class="skill-category" th:text="${request.status}">PENDING</p>
+
+                    <div th:if="${request.status.name() == 'PENDING'}" class="connection-actions">
+                        <form th:action="@{/projects/requests/{requestId}/accept(requestId=${request.id})}" method="post">
+                            <input type="hidden" name="projectId" th:value="${project.id}">
+                            <button type="submit" class="btn btn-primary">Accept</button>
+                        </form>
+
+                        <form th:action="@{/projects/requests/{requestId}/reject(requestId=${request.id})}" method="post">
+                            <input type="hidden" name="projectId" th:value="${project.id}">
+                            <button type="submit" class="btn btn-secondary">Reject</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>
