@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.GrowLink.entity.ConnectionRequest;
 import com.example.GrowLink.entity.User;
+import com.example.GrowLink.enums.NotificationType;
 import com.example.GrowLink.enums.RequestStatus;
 import com.example.GrowLink.repository.ConnectionRequestRepository;
 import com.example.GrowLink.repository.UserRepository;
@@ -18,17 +19,21 @@ public class ConnectionService {
     private final ConnectionRequestRepository connectionRequestRepository;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public ConnectionService(ConnectionRequestRepository connectionRequestRepository,
                              UserService userService,
-                             UserRepository userRepository) {
+                             UserRepository userRepository,
+                             NotificationService notificationService) {
         this.connectionRequestRepository = connectionRequestRepository;
         this.userService = userService;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     public List<User> getOtherUsers(String currentEmail) {
         User currentUser = userService.getUserByEmail(currentEmail);
+
         return userRepository.findAll()
                 .stream()
                 .filter(user -> !user.getId().equals(currentUser.getId()))
@@ -48,20 +53,24 @@ public class ConnectionService {
     public List<User> getAcceptedConnections(String email) {
         User currentUser = userService.getUserByEmail(email);
 
-        List<ConnectionRequest> accepted = connectionRequestRepository
-                .findBySenderOrReceiverAndStatus(currentUser, currentUser, RequestStatus.ACCEPTED);
+        List<ConnectionRequest> acceptedRequests =
+                connectionRequestRepository.findBySenderOrReceiverAndStatus(
+                        currentUser,
+                        currentUser,
+                        RequestStatus.ACCEPTED
+                );
 
-        List<User> connections = new ArrayList<>();
+        List<User> connectedUsers = new ArrayList<>();
 
-        for (ConnectionRequest request : accepted) {
+        for (ConnectionRequest request : acceptedRequests) {
             if (request.getSender().getId().equals(currentUser.getId())) {
-                connections.add(request.getReceiver());
+                connectedUsers.add(request.getReceiver());
             } else {
-                connections.add(request.getSender());
+                connectedUsers.add(request.getSender());
             }
         }
 
-        return connections;
+        return connectedUsers;
     }
 
     @Transactional
@@ -88,6 +97,14 @@ public class ConnectionService {
         request.setStatus(RequestStatus.PENDING);
 
         connectionRequestRepository.save(request);
+
+        notificationService.createNotification(
+                receiver,
+                "New Connection Request",
+                sender.getFullName() + " sent you a connection request.",
+                NotificationType.CONNECTION
+        );
+
         return "Connection request sent successfully.";
     }
 
@@ -104,6 +121,14 @@ public class ConnectionService {
 
         request.setStatus(RequestStatus.ACCEPTED);
         connectionRequestRepository.save(request);
+
+        notificationService.createNotification(
+                request.getSender(),
+                "Connection Accepted",
+                receiver.getFullName() + " accepted your connection request.",
+                NotificationType.CONNECTION
+        );
+
         return "Connection request accepted.";
     }
 
@@ -120,6 +145,7 @@ public class ConnectionService {
 
         request.setStatus(RequestStatus.REJECTED);
         connectionRequestRepository.save(request);
+
         return "Connection request rejected.";
     }
 }

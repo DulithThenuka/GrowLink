@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.GrowLink.entity.Message;
 import com.example.GrowLink.entity.User;
+import com.example.GrowLink.enums.NotificationType;
 import com.example.GrowLink.repository.MessageRepository;
 import com.example.GrowLink.repository.UserRepository;
 
@@ -19,13 +20,16 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public MessageService(MessageRepository messageRepository,
                           UserService userService,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          NotificationService notificationService) {
         this.messageRepository = messageRepository;
         this.userService = userService;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     public List<User> getAllOtherUsers(String currentEmail) {
@@ -92,6 +96,14 @@ public class MessageService {
         message.setIsRead(false);
 
         messageRepository.save(message);
+
+        notificationService.createNotification(
+                receiver,
+                "New Message",
+                sender.getFullName() + " sent you a new message.",
+                NotificationType.MESSAGE
+        );
+
         return "Message sent successfully.";
     }
 }

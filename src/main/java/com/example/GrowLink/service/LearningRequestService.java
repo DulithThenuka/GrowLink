@@ -11,6 +11,7 @@ import com.example.GrowLink.entity.LearningRequest;
 import com.example.GrowLink.entity.Skill;
 import com.example.GrowLink.entity.User;
 import com.example.GrowLink.entity.UserTeachSkill;
+import com.example.GrowLink.enums.NotificationType;
 import com.example.GrowLink.enums.RequestStatus;
 import com.example.GrowLink.repository.LearningRequestRepository;
 import com.example.GrowLink.repository.SkillRepository;
@@ -25,17 +26,20 @@ public class LearningRequestService {
     private final UserRepository userRepository;
     private final SkillRepository skillRepository;
     private final UserTeachSkillRepository userTeachSkillRepository;
+    private final NotificationService notificationService;
 
     public LearningRequestService(LearningRequestRepository learningRequestRepository,
                                   UserService userService,
                                   UserRepository userRepository,
                                   SkillRepository skillRepository,
-                                  UserTeachSkillRepository userTeachSkillRepository) {
+                                  UserTeachSkillRepository userTeachSkillRepository,
+                                  NotificationService notificationService) {
         this.learningRequestRepository = learningRequestRepository;
         this.userService = userService;
         this.userRepository = userRepository;
         this.skillRepository = skillRepository;
         this.userTeachSkillRepository = userTeachSkillRepository;
+        this.notificationService = notificationService;
     }
 
     public List<LearningRequest> getSentRequests(String email) {
@@ -78,6 +82,14 @@ public class LearningRequestService {
         request.setStatus(RequestStatus.PENDING);
 
         learningRequestRepository.save(request);
+
+        notificationService.createNotification(
+                teacher,
+                "New Learning Request",
+                learner.getFullName() + " wants to learn " + skill.getName() + " from you.",
+                NotificationType.LEARNING_REQUEST
+        );
+
         return "Learning request sent successfully.";
     }
 
@@ -92,6 +104,13 @@ public class LearningRequestService {
 
         request.setStatus(RequestStatus.ACCEPTED);
         learningRequestRepository.save(request);
+
+        notificationService.createNotification(
+                request.getLearner(),
+                "Learning Request Accepted",
+                teacher.getFullName() + " accepted your learning request for " + request.getSkill().getName() + ".",
+                NotificationType.LEARNING_REQUEST
+        );
 
         return "Learning request accepted.";
     }
@@ -123,6 +142,13 @@ public class LearningRequestService {
         request.setStatus(RequestStatus.COMPLETED);
         request.setCompletedAt(LocalDateTime.now());
         learningRequestRepository.save(request);
+
+        notificationService.createNotification(
+                request.getLearner(),
+                "Learning Completed",
+                "Your learning request for " + request.getSkill().getName() + " was marked as completed.",
+                NotificationType.LEARNING_REQUEST
+        );
 
         return "Learning request marked as completed.";
     }

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Notifications - GrowLink')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="notifications-page">
+    <div class="container">
+        <div class="skills-header">
+            <h1>Notifications</h1>
+            <p>Stay updated with activity across GrowLink.</p>
+        </div>
+
+        <section class="skills-card">
+            <div th:if="${#lists.isEmpty(notifications)}" class="empty-state">
+                No notifications yet.
+            </div>
+
+            <div th:each="notification : ${notifications}" class="notification-item">
+                <div class="notification-top">
+                    <h3 th:text="${notification.title}">Notification Title</h3>
+                    <span class="skill-badge secondary" th:text="${notification.type}">TYPE</span>
+                </div>
+
+                <p th:text="${notification.message}">Notification message</p>
+
+                <small class="notification-time"
+                       th:text="${#temporals.format(notification.createdAt, 'yyyy-MM-dd HH:mm')}">
+                    2026-04-08 10:00
+                </small>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

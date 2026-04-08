@@ -7,13 +7,48 @@
 
 <main class="dashboard-page">
     <div class="container">
-        <div class="dashboard-card">
-            <h1>Welcome to GrowLink</h1>
-            <p>Your account is ready. Now build your identity, add your skills, and start connecting with people.</p>
+        <div class="dashboard-wrapper">
+            <div class="dashboard-card">
+                <h1>Welcome to GrowLink</h1>
+                <p>Your account is active. Track your growth, connections, and learning from one place.</p>
 
-            <div class="dashboard-actions">
-                <a th:href="@{/profile}" class="btn btn-primary">View Profile</a>
-                <a th:href="@{/profile/edit}" class="btn btn-secondary">Edit Profile</a>
+                <div class="dashboard-actions">
+                    <a th:href="@{/profile}" class="btn btn-primary">View Profile</a>
+                    <a th:href="@{/profile/edit}" class="btn btn-secondary">Edit Profile</a>
+                    <a th:href="@{/notifications}" class="btn btn-secondary">Notifications</a>
+                </div>
+            </div>
+
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3>Teach Skills</h3>
+                    <p th:text="${teachSkillCount}">0</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Learn Skills</h3>
+                    <p th:text="${learnSkillCount}">0</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Connections</h3>
+                    <p th:text="${connectionCount}">0</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Sent Learning</h3>
+                    <p th:text="${sentLearningCount}">0</p>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Received Learning</h3>
+                    <p th:text="${receivedLearningCount}">0</p>
+                </div>
+
+                <div class="stat-card highlight">
+                    <h3>Unread Notifications</h3>
+                    <p th:text="${unreadNotificationCount}">0</p>
+                </div>
             </div>
         </div>
     </div>
