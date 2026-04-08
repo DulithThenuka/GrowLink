@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Explore Projects')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="projects-page">
+<div class="container">
+
+    <h1>Explore Projects</h1>
+
+    <form method="get" th:action="@{/explore/projects}" class="search-bar">
+
+        <input type="text" name="keyword" placeholder="Search project..." th:value="${keyword}">
+
+        <input type="text" name="category" placeholder="Category..." th:value="${category}">
+
+        <button class="btn btn-primary">Search</button>
+    </form>
+
+    <div class="projects-grid">
+
+        <div th:each="p : ${projects}" class="project-item">
+            <h3 th:text="${p.title}"></h3>
+
+            <p th:text="${p.category}"></p>
+
+            <p th:text="${p.owner.fullName}"></p>
+
+            <a th:href="@{/projects/{id}(id=${p.id})}" class="btn btn-secondary">
+                View Project
+            </a>
+        </div>
+
+    </div>
+
+</div>
+</main>
+
+</body>
+</html>

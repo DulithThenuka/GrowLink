@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Explore Users')}"></head>
+<body>
+
+<header th:replace="~{fragments/navbar :: navbar}"></header>
+
+<main class="projects-page">
+<div class="container">
+
+    <h1>Explore Users</h1>
+
+    <form method="get" th:action="@{/explore/users}" class="search-bar">
+        <input type="text" name="keyword" placeholder="Search users..." th:value="${keyword}">
+        <button class="btn btn-primary">Search</button>
+    </form>
+
+    <div class="projects-grid">
+
+        <div th:each="user : ${users}" class="project-item">
+            <h3 th:text="${user.fullName}"></h3>
+
+            <p th:text="${user.headline != null ? user.headline : 'No headline'}"></p>
+
+            <p th:text="${user.email}"></p>
+
+            <a th:href="@{/profile/{id}(id=${user.id})}" class="btn btn-secondary">
+                View Profile
+            </a>
+        </div>
+
+    </div>
+
+</div>
+</main>
+
+</body>
+</html>

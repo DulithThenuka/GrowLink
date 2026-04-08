@@ -12,4 +12,8 @@ import com.example.GrowLink.entity.User;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     List<Project> findByOwner(User owner);
+
+    List<Project> findByTitleContainingIgnoreCase(String title);
+
+    List<Project> findByCategoryContainingIgnoreCase(String category);
 }

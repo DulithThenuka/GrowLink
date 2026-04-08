@@ -943,3 +943,15 @@ select option {
         flex-wrap: wrap;
     }
 }
+.search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+}
