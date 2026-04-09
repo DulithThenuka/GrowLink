@@ -21,6 +21,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     long countByReviewedUser(User reviewedUser);
 
+    void deleteByReviewerAndReviewedUser(User reviewer, User reviewedUser);
+
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.reviewedUser = :reviewedUser")
     Double findAverageRatingByReviewedUser(User reviewedUser);
 }

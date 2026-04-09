@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.example.GrowLink.entity.Review;
 import com.example.GrowLink.entity.User;
+import com.example.GrowLink.service.ConnectionService;
 import com.example.GrowLink.service.ReviewService;
 import com.example.GrowLink.service.UserService;
 
@@ -19,39 +20,38 @@ public class ProfileController {
 
     private final UserService userService;
     private final ReviewService reviewService;
+    private final ConnectionService connectionService;
 
-    public ProfileController(UserService userService, ReviewService reviewService) {
+    public ProfileController(UserService userService,
+                             ReviewService reviewService,
+                             ConnectionService connectionService) {
         this.userService = userService;
         this.reviewService = reviewService;
+        this.connectionService = connectionService;
     }
 
     @GetMapping("/profile/{id}")
     public String viewProfile(@PathVariable Long id, Authentication authentication, Model model) {
-        User profileUser;
+        User profileUser = userService.getUserById(id).orElse(null);
 
-        try {
-            profileUser = userService.getUserById(id);
-        } catch (IllegalArgumentException e) {
+        if (profileUser == null) {
             return "redirect:/";
         }
 
         User loggedUser = null;
         Review myReview = null;
+        boolean canReview = false;
 
-        if (authentication != null
-                && authentication.isAuthenticated()
-                && !"anonymousUser".equals(authentication.getName())) {
-            try {
-                loggedUser = userService.getUserByEmail(authentication.getName());
+        if (authentication != null && authentication.isAuthenticated()) {
+            loggedUser = userService.getUserByEmail(authentication.getName()).orElse(null);
 
-                if (loggedUser != null && !loggedUser.getId().equals(profileUser.getId())) {
-                    Optional<Review> existing = reviewService.getReviewByReviewerAndReviewed(loggedUser, profileUser);
-                    if (existing.isPresent()) {
-                        myReview = existing.get();
-                    }
+            if (loggedUser != null && !loggedUser.getId().equals(profileUser.getId())) {
+                canReview = connectionService.areConnected(loggedUser, profileUser);
+
+                Optional<Review> existing = reviewService.getReviewByReviewerAndReviewed(loggedUser, profileUser);
+                if (existing.isPresent()) {
+                    myReview = existing.get();
                 }
-            } catch (Exception e) {
-                loggedUser = null;
             }
         }
 
@@ -65,6 +65,7 @@ public class ProfileController {
         model.addAttribute("averageRating", averageRating);
         model.addAttribute("reviewCount", reviewCount);
         model.addAttribute("myReview", myReview);
+        model.addAttribute("canReview", canReview);
 
         return "profile/view";
     }

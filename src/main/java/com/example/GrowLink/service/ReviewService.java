@@ -37,9 +37,13 @@ public class ReviewService {
         review.setReviewer(reviewer);
         review.setReviewedUser(reviewedUser);
         review.setRating(rating);
-        review.setComment(comment);
+        review.setComment(comment != null ? comment.trim() : null);
 
         return reviewRepository.save(review);
+    }
+
+    public void deleteReview(User reviewer, User reviewedUser) {
+        reviewRepository.deleteByReviewerAndReviewedUser(reviewer, reviewedUser);
     }
 
     public long getReviewCount(User reviewedUser) {

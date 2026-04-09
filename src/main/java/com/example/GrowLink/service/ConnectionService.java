@@ -148,4 +148,20 @@ public class ConnectionService {
 
         return "Connection request rejected.";
     }
+    public boolean areConnected(User user1, User user2) {
+    if (user1 == null || user2 == null) {
+        return false;
+    }
+
+    return connectionRepository.findAll().stream().anyMatch(connection ->
+            "ACCEPTED".equalsIgnoreCase(connection.getStatus().name()) &&
+            (
+                (connection.getRequester().getId().equals(user1.getId()) &&
+                 connection.getReceiver().getId().equals(user2.getId()))
+             ||
+                (connection.getRequester().getId().equals(user2.getId()) &&
+                 connection.getReceiver().getId().equals(user1.getId()))
+            )
+    );
+}
 }

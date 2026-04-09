@@ -1,75 +1,173 @@
-<section class="review-section">
-    <div class="review-summary-card">
-        <h2>Reviews & Ratings</h2>
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${profileUser != null ? profileUser.fullName + ' | GrowLink Profile' : 'Profile | GrowLink'}">Profile | GrowLink</title>
 
-        <div class="rating-overview">
-            <div class="big-rating" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">0.0</div>
-            <div class="rating-meta">
-                <div class="stars-line">
-                    <span th:each="i : ${#numbers.sequence(1,5)}">
-                        <i th:class="${i <= T(java.lang.Math).round(averageRating)} ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
-                    </span>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+
+<div class="profile-page">
+
+    <div class="profile-container">
+
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <section class="profile-header-card">
+            <div class="profile-header-left">
+                <div class="profile-avatar">
+                    <img th:if="${profileUser.profileImageUrl != null and !#strings.isEmpty(profileUser.profileImageUrl)}"
+                         th:src="${profileUser.profileImageUrl}" alt="Profile Image">
+                    <div th:if="${profileUser.profileImageUrl == null or #strings.isEmpty(profileUser.profileImageUrl)}" class="avatar-fallback">
+                        <span th:text="${profileUser.fullName != null ? #strings.substring(profileUser.fullName,0,1) : 'U'}">U</span>
+                    </div>
                 </div>
-                <p>
-                    <span th:text="${reviewCount}">0</span> reviews
-                </p>
+
+                <div class="profile-main-info">
+                    <h1 th:text="${profileUser.fullName}">User Name</h1>
+                    <p class="profile-email" th:text="${profileUser.email}">user@email.com</p>
+                    <p class="profile-bio"
+                       th:text="${profileUser.bio != null and !#strings.isEmpty(profileUser.bio) ? profileUser.bio : 'No bio added yet.'}">
+                        No bio added yet.
+                    </p>
+                </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <div class="review-form-card"
-         th:if="${loggedUser != null and profileUser.id != loggedUser.id}">
-        <h3 th:text="${myReview != null} ? 'Edit Your Review' : 'Write a Review'">Write a Review</h3>
+        <section class="review-section">
 
-        <form th:action="@{/reviews/save}" method="post" class="review-form">
-            <input type="hidden" name="reviewedUserId" th:value="${profileUser.id}">
+            <div class="review-summary-card">
+                <h2>Reviews & Ratings</h2>
 
-            <label for="rating">Rating</label>
-            <select id="rating" name="rating" required>
-                <option value="">Select rating</option>
-                <option value="5" th:selected="${myReview != null and myReview.rating == 5}">5 - Excellent</option>
-                <option value="4" th:selected="${myReview != null and myReview.rating == 4}">4 - Very Good</option>
-                <option value="3" th:selected="${myReview != null and myReview.rating == 3}">3 - Good</option>
-                <option value="2" th:selected="${myReview != null and myReview.rating == 2}">2 - Fair</option>
-                <option value="1" th:selected="${myReview != null and myReview.rating == 1}">1 - Poor</option>
-            </select>
+                <div class="rating-overview">
+                    <div class="big-rating" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">0.0</div>
 
-            <label for="comment">Comment</label>
-            <textarea id="comment" name="comment" rows="4" maxlength="1000"
-                      placeholder="Share your experience..."
-                      th:text="${myReview != null ? myReview.comment : ''}"></textarea>
-
-            <button type="submit" class="review-btn">
-                <span th:text="${myReview != null} ? 'Update Review' : 'Submit Review'">Submit Review</span>
-            </button>
-        </form>
-    </div>
-
-    <div class="review-list-card">
-        <h3>What people say</h3>
-
-        <div th:if="${#lists.isEmpty(reviews)}" class="empty-reviews">
-            No reviews yet.
-        </div>
-
-        <div th:each="review : ${reviews}" class="review-item">
-            <div class="review-top">
-                <div>
-                    <h4 th:text="${review.reviewer.fullName}">Reviewer Name</h4>
-                    <small th:text="${#temporals.format(review.createdAt, 'dd MMM yyyy HH:mm')}">09 Apr 2026</small>
-                </div>
-
-                <div class="review-stars">
-                    <span th:each="i : ${#numbers.sequence(1,5)}">
-                        <i th:class="${i <= review.rating} ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
-                    </span>
+                    <div class="rating-meta">
+                        <div class="stars-line">
+                            <span th:each="i : ${#numbers.sequence(1,5)}">
+                                <i th:class="${i <= T(java.lang.Math).round(averageRating)} ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                            </span>
+                        </div>
+                        <p><span th:text="${reviewCount}">0</span> reviews</p>
+                    </div>
                 </div>
             </div>
 
-            <p class="review-comment" th:text="${review.comment}">Great person to collaborate with.</p>
-        </div>
+            <div class="review-form-card"
+                 th:if="${loggedUser != null and profileUser.id != loggedUser.id}">
+
+                <div th:if="${canReview}">
+                    <h3 th:text="${myReview != null} ? 'Edit Your Review' : 'Write a Review'">Write a Review</h3>
+
+                    <form th:action="@{/reviews/save}" method="post" class="review-form">
+                        <input type="hidden" name="reviewedUserId" th:value="${profileUser.id}">
+                        <input type="hidden" id="ratingInput" name="rating" th:value="${myReview != null ? myReview.rating : ''}">
+
+                        <label>Rating</label>
+                        <div class="star-picker">
+                            <i class="fa-regular fa-star review-star" data-value="1"></i>
+                            <i class="fa-regular fa-star review-star" data-value="2"></i>
+                            <i class="fa-regular fa-star review-star" data-value="3"></i>
+                            <i class="fa-regular fa-star review-star" data-value="4"></i>
+                            <i class="fa-regular fa-star review-star" data-value="5"></i>
+                        </div>
+
+                        <label for="comment">Comment</label>
+                        <textarea id="comment"
+                                  name="comment"
+                                  rows="4"
+                                  maxlength="1000"
+                                  placeholder="Share your experience..."
+                                  th:text="${myReview != null ? myReview.comment : ''}"></textarea>
+
+                        <button type="submit" class="review-btn">
+                            <span th:text="${myReview != null} ? 'Update Review' : 'Submit Review'">Submit Review</span>
+                        </button>
+                    </form>
+
+                    <form th:if="${myReview != null}" th:action="@{/reviews/delete}" method="post" style="margin-top: 12px;">
+                        <input type="hidden" name="reviewedUserId" th:value="${profileUser.id}">
+                        <button type="submit" class="delete-review-btn">Delete Review</button>
+                    </form>
+                </div>
+
+                <div th:if="${!canReview}" class="review-lock-message">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>You can only review users after a real accepted connection.</span>
+                </div>
+            </div>
+
+            <div class="review-list-card">
+                <h3>What people say</h3>
+
+                <div th:if="${#lists.isEmpty(reviews)}" class="empty-reviews">
+                    No reviews yet.
+                </div>
+
+                <div th:each="review : ${reviews}" class="review-item">
+                    <div class="review-top">
+                        <div>
+                            <h4 th:text="${review.reviewer.fullName}">Reviewer Name</h4>
+                            <small th:text="${#temporals.format(review.createdAt, 'dd MMM yyyy HH:mm')}">09 Apr 2026</small>
+                        </div>
+
+                        <div class="review-stars">
+                            <span th:each="i : ${#numbers.sequence(1,5)}">
+                                <i th:class="${i <= review.rating} ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <p class="review-comment"
+                       th:text="${review.comment != null and !#strings.isEmpty(review.comment) ? review.comment : 'No written comment.'}">
+                        Great collaborator.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
     </div>
-</section>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-<div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const stars = document.querySelectorAll(".review-star");
+        const ratingInput = document.getElementById("ratingInput");
+
+        if (!stars.length || !ratingInput) return;
+
+        function paintStars(value) {
+            stars.forEach(star => {
+                const starValue = parseInt(star.getAttribute("data-value"));
+                if (starValue <= value) {
+                    star.classList.remove("fa-regular");
+                    star.classList.add("fa-solid", "active");
+                } else {
+                    star.classList.remove("fa-solid", "active");
+                    star.classList.add("fa-regular");
+                }
+            });
+        }
+
+        const initialValue = parseInt(ratingInput.value || "0");
+        if (initialValue > 0) {
+            paintStars(initialValue);
+        }
+
+        stars.forEach(star => {
+            star.addEventListener("click", function () {
+                const value = parseInt(this.getAttribute("data-value"));
+                ratingInput.value = value;
+                paintStars(value);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
