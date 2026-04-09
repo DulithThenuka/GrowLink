@@ -1,7 +1,7 @@
 package com.example.GrowLink.repository;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -19,5 +19,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByFullNameContainingIgnoreCase(String name);
 
-    List<User> findByHeadlineContainingIgnoreCase(String headline);   
+    List<User> findByHeadlineContainingIgnoreCase(String headline);
 }

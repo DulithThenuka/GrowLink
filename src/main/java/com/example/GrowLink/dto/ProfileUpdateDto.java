@@ -1,5 +1,7 @@
 package com.example.GrowLink.dto;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -17,6 +19,8 @@ public class ProfileUpdateDto {
 
     @Size(max = 1000, message = "Bio must not exceed 1000 characters")
     private String bio;
+
+    private MultipartFile profileImageFile;
 
     public ProfileUpdateDto() {
     }
@@ -37,6 +41,10 @@ public class ProfileUpdateDto {
         return bio;
     }
 
+    public MultipartFile getProfileImageFile() {
+        return profileImageFile;
+    }
+
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
@@ -51,5 +59,9 @@ public class ProfileUpdateDto {
 
     public void setBio(String bio) {
         this.bio = bio;
+    }
+
+    public void setProfileImageFile(MultipartFile profileImageFile) {
+        this.profileImageFile = profileImageFile;
     }
 }

@@ -8,38 +8,45 @@
 <main class="profile-page">
     <div class="container">
 
-        <!-- SUCCESS MESSAGE -->
         <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
 
-        <!-- PROFILE CARD -->
         <section class="skills-card profile-card">
 
             <div class="profile-top">
-                <div class="profile-info">
-                    <h1 th:text="${user.fullName}">Full Name</h1>
+                <div class="profile-identity">
+                    <div class="profile-avatar-large">
+                        <img th:if="${user.profileImage != null and !#strings.isEmpty(user.profileImage)}"
+                             th:src="@{${user.profileImage}}"
+                             alt="Profile Image">
 
-                    <p class="profile-headline"
-                       th:text="${user.headline != null and !#strings.isEmpty(user.headline) ? user.headline : 'No headline added yet.'}">
-                        Headline
-                    </p>
+                        <span th:if="${user.profileImage == null or #strings.isEmpty(user.profileImage)}"
+                              th:text="${#strings.substring(user.fullName,0,1)}">U</span>
+                    </div>
 
-                    <p class="profile-location"
-                       th:text="${user.location != null and !#strings.isEmpty(user.location) ? user.location : 'No location added.'}">
-                        Location
-                    </p>
+                    <div class="profile-info">
+                        <h1 th:text="${user.fullName}">Full Name</h1>
 
-                    <p class="profile-email" th:text="${user.email}">email@gmail.com</p>
+                        <p class="profile-headline"
+                           th:text="${user.headline != null and !#strings.isEmpty(user.headline) ? user.headline : 'No headline added yet.'}">
+                            Headline
+                        </p>
+
+                        <p class="profile-location"
+                           th:text="${user.location != null and !#strings.isEmpty(user.location) ? user.location : 'No location added.'}">
+                            Location
+                        </p>
+
+                        <p class="profile-email" th:text="${user.email}">email@gmail.com</p>
+                    </div>
                 </div>
 
                 <div class="profile-actions">
                     <a th:href="@{/profile/edit}" class="btn btn-primary">Edit Profile</a>
                     <a th:href="@{/connections}" class="btn btn-secondary">Connections</a>
-                    <a th:href="@{/reports/user/{userId}(userId=${user.id})}" class="btn btn-secondary">Report User</a>
                     <a th:href="@{/dashboard}" class="btn btn-secondary">Dashboard</a>
                 </div>
             </div>
 
-            <!-- BIO -->
             <div class="profile-bio-box">
                 <h3>About</h3>
                 <p th:text="${user.bio != null and !#strings.isEmpty(user.bio) ? user.bio : 'No bio added yet.'}">
@@ -49,10 +56,8 @@
 
         </section>
 
-        <!-- SKILLS SECTION -->
         <div class="profile-skills-grid">
 
-            <!-- TEACH SKILLS -->
             <section class="skills-card">
                 <h2>Skills I Teach</h2>
 
@@ -60,25 +65,23 @@
                     No teaching skills added yet.
                 </div>
 
-                <div th:each="skill : ${teachSkills}" class="skill-item">
+                <div th:each="item : ${teachSkills}" class="skill-item">
                     <div class="skill-item-top">
-                        <h3 th:text="${skill.skill.name}">Skill Name</h3>
-                        <span class="skill-badge">TEACH</span>
+                        <h3 th:text="${item.skill.name}">Skill Name</h3>
+                        <span class="skill-badge" th:text="${item.level}">ADVANCED</span>
                     </div>
 
                     <p class="skill-category"
-                       th:text="${skill.skill.category != null ? skill.skill.category : 'General'}">
+                       th:text="${item.skill.category != null ? item.skill.category : 'General'}">
                         Category
                     </p>
 
-                    <p th:if="${skill.description != null}"
-                       th:text="${skill.description}">
+                    <p th:text="${item.experienceText != null and !#strings.isEmpty(item.experienceText) ? item.experienceText : 'No experience text added.'}">
                         Description
                     </p>
                 </div>
             </section>
 
-            <!-- LEARN SKILLS -->
             <section class="skills-card">
                 <h2>Skills I Want to Learn</h2>
 
@@ -86,19 +89,18 @@
                     No learning skills added yet.
                 </div>
 
-                <div th:each="skill : ${learnSkills}" class="skill-item">
+                <div th:each="item : ${learnSkills}" class="skill-item">
                     <div class="skill-item-top">
-                        <h3 th:text="${skill.skill.name}">Skill Name</h3>
-                        <span class="skill-badge secondary">LEARN</span>
+                        <h3 th:text="${item.skill.name}">Skill Name</h3>
+                        <span class="skill-badge secondary" th:text="${item.targetLevel}">BEGINNER</span>
                     </div>
 
                     <p class="skill-category"
-                       th:text="${skill.skill.category != null ? skill.skill.category : 'General'}">
+                       th:text="${item.skill.category != null ? item.skill.category : 'General'}">
                         Category
                     </p>
 
-                    <p th:if="${skill.description != null}"
-                       th:text="${skill.description}">
+                    <p th:text="${item.note != null and !#strings.isEmpty(item.note) ? item.note : 'No note added.'}">
                         Description
                     </p>
                 </div>

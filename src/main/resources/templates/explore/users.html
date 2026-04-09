@@ -18,11 +18,11 @@
     <div class="projects-grid">
 
         <div th:each="user : ${users}" class="project-item">
-            <h3 th:text="${user.fullName}"></h3>
+            <h3 th:text="${user.fullName}">User Name</h3>
 
             <p th:text="${user.headline != null ? user.headline : 'No headline'}"></p>
 
-            <p th:text="${user.email}"></p>
+            <p th:text="${user.email}">user@email.com</p>
 
             <a th:href="@{/profile/{id}(id=${user.id})}" class="btn btn-secondary">
                 View Profile

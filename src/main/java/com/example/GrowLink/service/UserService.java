@@ -19,10 +19,14 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FileUploadService fileUploadService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       FileUploadService fileUploadService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.fileUploadService = fileUploadService;
     }
 
     public Optional<User> findByEmail(String email) {
@@ -66,6 +70,7 @@ public class UserService {
         return dto;
     }
 
+    @Transactional
     public void updateProfile(String email, ProfileUpdateDto profileUpdateDto) {
         User user = getUserByEmail(email);
 
@@ -73,6 +78,11 @@ public class UserService {
         user.setHeadline(profileUpdateDto.getHeadline());
         user.setLocation(profileUpdateDto.getLocation());
         user.setBio(profileUpdateDto.getBio());
+
+        if (profileUpdateDto.getProfileImageFile() != null && !profileUpdateDto.getProfileImageFile().isEmpty()) {
+            String imagePath = fileUploadService.saveProfileImage(profileUpdateDto.getProfileImageFile());
+            user.setProfileImage(imagePath);
+        }
 
         userRepository.save(user);
     }
