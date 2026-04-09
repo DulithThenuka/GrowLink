@@ -1,73 +1,71 @@
 package com.example.GrowLink.controller;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.security.Principal;
+import java.util.List;
+import java.util.Optional;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
-import com.example.GrowLink.dto.ProfileUpdateDto;
+import com.example.GrowLink.entity.Review;
 import com.example.GrowLink.entity.User;
-import com.example.GrowLink.service.SkillService;
+import com.example.GrowLink.service.ReviewService;
 import com.example.GrowLink.service.UserService;
-
-import jakarta.validation.Valid;
 
 @Controller
 public class ProfileController {
 
     private final UserService userService;
-    private final SkillService skillService;
+    private final ReviewService reviewService;
 
-    public ProfileController(UserService userService, SkillService skillService) {
+    public ProfileController(UserService userService, ReviewService reviewService) {
         this.userService = userService;
-        this.skillService = skillService;
+        this.reviewService = reviewService;
     }
 
-    @GetMapping("/profile")
-    public String showProfilePage(Model model,
-                                  Principal principal,
-                                  @RequestParam(value = "message", required = false) String message) {
-        User user = userService.getUserByEmail(principal.getName());
-        model.addAttribute("user", user);
-        model.addAttribute("teachSkills", skillService.getTeachSkillsByUserEmail(principal.getName()));
-        model.addAttribute("learnSkills", skillService.getLearnSkillsByUserEmail(principal.getName()));
-        model.addAttribute("message", message);
-        return "profile/profile";
-    }
+    @GetMapping("/profile/{id}")
+    public String viewProfile(@PathVariable Long id, Authentication authentication, Model model) {
+        User profileUser;
 
-    @GetMapping("/profile/{userId}")
-    public String showPublicProfile(@PathVariable Long userId, Model model) {
-        User user = userService.getUserById(userId);
-        model.addAttribute("user", user);
-        model.addAttribute("teachSkills", skillService.getTeachSkillsByUserEmail(user.getEmail()));
-        model.addAttribute("learnSkills", skillService.getLearnSkillsByUserEmail(user.getEmail()));
-        return "profile/view-profile";
-    }
-
-    @GetMapping("/profile/edit")
-    public String showEditProfilePage(Model model, Principal principal) {
-        ProfileUpdateDto profileUpdateDto = userService.getProfileUpdateDtoByEmail(principal.getName());
-        model.addAttribute("profileUpdateDto", profileUpdateDto);
-        return "profile/edit-profile";
-    }
-
-    @PostMapping("/profile/edit")
-    public String updateProfile(@Valid @ModelAttribute("profileUpdateDto") ProfileUpdateDto profileUpdateDto,
-                                BindingResult bindingResult,
-                                Principal principal,
-                                Model model) {
-
-        if (bindingResult.hasErrors()) {
-            return "profile/edit-profile";
+        try {
+            profileUser = userService.getUserById(id);
+        } catch (IllegalArgumentException e) {
+            return "redirect:/";
         }
 
-        userService.updateProfile(principal.getName(), profileUpdateDto);
+        User loggedUser = null;
+        Review myReview = null;
 
-        return "redirect:/profile?message=" +
-                URLEncoder.encode("Profile updated successfully.", StandardCharsets.UTF_8);
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getName())) {
+            try {
+                loggedUser = userService.getUserByEmail(authentication.getName());
+
+                if (loggedUser != null && !loggedUser.getId().equals(profileUser.getId())) {
+                    Optional<Review> existing = reviewService.getReviewByReviewerAndReviewed(loggedUser, profileUser);
+                    if (existing.isPresent()) {
+                        myReview = existing.get();
+                    }
+                }
+            } catch (Exception e) {
+                loggedUser = null;
+            }
+        }
+
+        List<Review> reviews = reviewService.getReviewsForUser(profileUser);
+        double averageRating = reviewService.getAverageRating(profileUser);
+        long reviewCount = reviewService.getReviewCount(profileUser);
+
+        model.addAttribute("profileUser", profileUser);
+        model.addAttribute("loggedUser", loggedUser);
+        model.addAttribute("reviews", reviews);
+        model.addAttribute("averageRating", averageRating);
+        model.addAttribute("reviewCount", reviewCount);
+        model.addAttribute("myReview", myReview);
+
+        return "profile/view";
     }
 }

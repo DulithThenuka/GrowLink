@@ -1,116 +1,75 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('View Profile - GrowLink')}"></head>
-<body>
+<section class="review-section">
+    <div class="review-summary-card">
+        <h2>Reviews & Ratings</h2>
 
-<header th:replace="~{fragments/navbar :: navbar}"></header>
-
-<main class="profile-page">
-    <div class="container">
-
-        <section class="skills-card profile-card">
-
-            <div class="profile-top">
-                <div class="profile-identity">
-                    <div class="profile-avatar-large">
-                        <img th:if="${user.profileImage != null and !#strings.isEmpty(user.profileImage)}"
-                             th:src="@{${user.profileImage}}"
-                             alt="Profile Image">
-
-                        <span th:if="${user.profileImage == null or #strings.isEmpty(user.profileImage)}"
-                              th:text="${#strings.substring(user.fullName,0,1)}">U</span>
-                    </div>
-
-                    <div class="profile-info">
-                        <h1 th:text="${user.fullName}">Full Name</h1>
-
-                        <p class="profile-headline"
-                           th:text="${user.headline != null and !#strings.isEmpty(user.headline) ? user.headline : 'No headline added yet.'}">
-                            Headline
-                        </p>
-
-                        <p class="profile-location"
-                           th:text="${user.location != null and !#strings.isEmpty(user.location) ? user.location : 'No location added.'}">
-                            Location
-                        </p>
-
-                        <p class="profile-email" th:text="${user.email}">email@gmail.com</p>
-                    </div>
+        <div class="rating-overview">
+            <div class="big-rating" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">0.0</div>
+            <div class="rating-meta">
+                <div class="stars-line">
+                    <span th:each="i : ${#numbers.sequence(1,5)}">
+                        <i th:class="${i <= T(java.lang.Math).round(averageRating)} ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                    </span>
                 </div>
-
-                <div class="profile-actions">
-                    <a th:href="@{/connections}" class="btn btn-primary">Connections</a>
-                    <a th:href="@{/messages}" class="btn btn-secondary">Messages</a>
-                    <a th:href="@{/reports/user/{userId}(userId=${user.id})}" class="btn btn-secondary">Report User</a>
-                    <a th:href="@{/explore/users}" class="btn btn-secondary">Back to Explore</a>
-                </div>
-            </div>
-
-            <div class="profile-bio-box">
-                <h3>About</h3>
-                <p th:text="${user.bio != null and !#strings.isEmpty(user.bio) ? user.bio : 'No bio added yet.'}">
-                    Bio
+                <p>
+                    <span th:text="${reviewCount}">0</span> reviews
                 </p>
             </div>
+        </div>
+    </div>
 
-        </section>
+    <div class="review-form-card"
+         th:if="${loggedUser != null and profileUser.id != loggedUser.id}">
+        <h3 th:text="${myReview != null} ? 'Edit Your Review' : 'Write a Review'">Write a Review</h3>
 
-        <div class="profile-skills-grid">
+        <form th:action="@{/reviews/save}" method="post" class="review-form">
+            <input type="hidden" name="reviewedUserId" th:value="${profileUser.id}">
 
-            <section class="skills-card">
-                <h2>Skills They Teach</h2>
+            <label for="rating">Rating</label>
+            <select id="rating" name="rating" required>
+                <option value="">Select rating</option>
+                <option value="5" th:selected="${myReview != null and myReview.rating == 5}">5 - Excellent</option>
+                <option value="4" th:selected="${myReview != null and myReview.rating == 4}">4 - Very Good</option>
+                <option value="3" th:selected="${myReview != null and myReview.rating == 3}">3 - Good</option>
+                <option value="2" th:selected="${myReview != null and myReview.rating == 2}">2 - Fair</option>
+                <option value="1" th:selected="${myReview != null and myReview.rating == 1}">1 - Poor</option>
+            </select>
 
-                <div th:if="${#lists.isEmpty(teachSkills)}" class="empty-state">
-                    No teaching skills added yet.
-                </div>
+            <label for="comment">Comment</label>
+            <textarea id="comment" name="comment" rows="4" maxlength="1000"
+                      placeholder="Share your experience..."
+                      th:text="${myReview != null ? myReview.comment : ''}"></textarea>
 
-                <div th:each="item : ${teachSkills}" class="skill-item">
-                    <div class="skill-item-top">
-                        <h3 th:text="${item.skill.name}">Skill Name</h3>
-                        <span class="skill-badge" th:text="${item.level}">ADVANCED</span>
-                    </div>
+            <button type="submit" class="review-btn">
+                <span th:text="${myReview != null} ? 'Update Review' : 'Submit Review'">Submit Review</span>
+            </button>
+        </form>
+    </div>
 
-                    <p class="skill-category"
-                       th:text="${item.skill.category != null ? item.skill.category : 'General'}">
-                        Category
-                    </p>
+    <div class="review-list-card">
+        <h3>What people say</h3>
 
-                    <p th:text="${item.experienceText != null and !#strings.isEmpty(item.experienceText) ? item.experienceText : 'No experience text added.'}">
-                        Description
-                    </p>
-                </div>
-            </section>
-
-            <section class="skills-card">
-                <h2>Skills They Want to Learn</h2>
-
-                <div th:if="${#lists.isEmpty(learnSkills)}" class="empty-state">
-                    No learning skills added yet.
-                </div>
-
-                <div th:each="item : ${learnSkills}" class="skill-item">
-                    <div class="skill-item-top">
-                        <h3 th:text="${item.skill.name}">Skill Name</h3>
-                        <span class="skill-badge secondary" th:text="${item.targetLevel}">BEGINNER</span>
-                    </div>
-
-                    <p class="skill-category"
-                       th:text="${item.skill.category != null ? item.skill.category : 'General'}">
-                        Category
-                    </p>
-
-                    <p th:text="${item.note != null and !#strings.isEmpty(item.note) ? item.note : 'No note added.'}">
-                        Description
-                    </p>
-                </div>
-            </section>
-
+        <div th:if="${#lists.isEmpty(reviews)}" class="empty-reviews">
+            No reviews yet.
         </div>
 
+        <div th:each="review : ${reviews}" class="review-item">
+            <div class="review-top">
+                <div>
+                    <h4 th:text="${review.reviewer.fullName}">Reviewer Name</h4>
+                    <small th:text="${#temporals.format(review.createdAt, 'dd MMM yyyy HH:mm')}">09 Apr 2026</small>
+                </div>
+
+                <div class="review-stars">
+                    <span th:each="i : ${#numbers.sequence(1,5)}">
+                        <i th:class="${i <= review.rating} ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                    </span>
+                </div>
+            </div>
+
+            <p class="review-comment" th:text="${review.comment}">Great person to collaborate with.</p>
+        </div>
     </div>
-</main>
-
-<footer th:replace="~{fragments/footer :: footer}"></footer>
-
-</body>
-</html>
+</section>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+<div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>

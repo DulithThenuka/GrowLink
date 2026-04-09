@@ -33,6 +33,10 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
@@ -48,6 +52,10 @@ public class UserService {
     }
 
     public User registerUser(RegisterDto registerDto) {
+        if (userRepository.existsByEmail(registerDto.getEmail())) {
+            throw new IllegalArgumentException("Email is already in use.");
+        }
+
         User user = new User();
         user.setFullName(registerDto.getFullName());
         user.setEmail(registerDto.getEmail());
@@ -79,7 +87,8 @@ public class UserService {
         user.setLocation(profileUpdateDto.getLocation());
         user.setBio(profileUpdateDto.getBio());
 
-        if (profileUpdateDto.getProfileImageFile() != null && !profileUpdateDto.getProfileImageFile().isEmpty()) {
+        if (profileUpdateDto.getProfileImageFile() != null
+                && !profileUpdateDto.getProfileImageFile().isEmpty()) {
             String imagePath = fileUploadService.saveProfileImage(profileUpdateDto.getProfileImageFile());
             user.setProfileImage(imagePath);
         }
