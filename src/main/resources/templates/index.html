@@ -5,20 +5,241 @@
 
 <header th:replace="~{fragments/navbar :: navbar}"></header>
 
-<main class="hero-section">
-    <div class="container">
-        <div class="hero-content">
-            <h1>Grow with skills. Connect with purpose. Build with people.</h1>
-            <p>
-                GrowLink is a platform where people can learn, teach, collaborate,
-                and turn their goals into real progress.
-            </p>
-            <div class="hero-actions">
-                <a href="#" class="btn btn-primary">Get Started</a>
-                <a href="#" class="btn btn-secondary">Explore Community</a>
+<main class="landing-page">
+
+    <!-- HERO -->
+    <section class="landing-hero">
+        <div class="container landing-hero-grid">
+            <div class="landing-hero-content">
+                <span class="hero-badge">A growth platform for builders, learners, and collaborators</span>
+
+                <h1>
+                    Grow with skills.<br>
+                    Connect with purpose.<br>
+                    Build with people.
+                </h1>
+
+                <p>
+                    GrowLink helps people learn new skills, connect with like-minded individuals,
+                    join meaningful projects, and turn goals into real progress.
+                </p>
+
+                <div class="landing-hero-actions">
+                    <a th:href="@{/register}" class="btn btn-primary">Get Started</a>
+                    <a th:href="@{/explore/users}" class="btn btn-secondary">Explore Users</a>
+                    <a th:href="@{/explore/projects}" class="btn btn-secondary">Explore Projects</a>
+                </div>
+
+                <div class="hero-mini-stats">
+                    <div>
+                        <strong>Learn</strong>
+                        <span>Discover skills from real people</span>
+                    </div>
+                    <div>
+                        <strong>Connect</strong>
+                        <span>Build meaningful relationships</span>
+                    </div>
+                    <div>
+                        <strong>Build</strong>
+                        <span>Join and create real projects</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="landing-hero-visual">
+                <div class="hero-glass-card card-main">
+                    <h3>Growth Dashboard</h3>
+                    <div class="hero-visual-stats">
+                        <div class="hero-stat-box">
+                            <span>Teach Skills</span>
+                            <strong>12</strong>
+                        </div>
+                        <div class="hero-stat-box">
+                            <span>Connections</span>
+                            <strong>28</strong>
+                        </div>
+                        <div class="hero-stat-box">
+                            <span>Projects</span>
+                            <strong>6</strong>
+                        </div>
+                        <div class="hero-stat-box">
+                            <span>Messages</span>
+                            <strong>19</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-glass-card card-floating top-card">
+                    <p>“Found collaborators for my app idea.”</p>
+                </div>
+
+                <div class="hero-glass-card card-floating bottom-card">
+                    <p>“Learned from real people, not just videos.”</p>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- TRUST / STATS -->
+    <section class="landing-stats">
+        <div class="container landing-stats-grid">
+            <div class="landing-stat-card">
+                <h2>Learn from people</h2>
+                <p>Find users who can teach real-world skills and help you grow faster.</p>
+            </div>
+
+            <div class="landing-stat-card">
+                <h2>Build connections</h2>
+                <p>Meet collaborators, learners, mentors, and ambitious people in one place.</p>
+            </div>
+
+            <div class="landing-stat-card">
+                <h2>Create together</h2>
+                <p>Launch projects, join teams, and turn ideas into progress with others.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="landing-section">
+        <div class="container">
+            <div class="section-heading">
+                <span>Why GrowLink</span>
+                <h2>Everything you need to grow in one ecosystem</h2>
+                <p>
+                    GrowLink combines learning, networking, collaboration, and communication
+                    into one modern platform.
+                </p>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">01</div>
+                    <h3>Skill Discovery</h3>
+                    <p>Browse people by skill, interests, and growth direction to learn from the right users.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">02</div>
+                    <h3>Meaningful Connections</h3>
+                    <p>Build a network based on value, ambition, and collaboration instead of random following.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">03</div>
+                    <h3>Learning Requests</h3>
+                    <p>Request learning directly from people who already teach the skills you want to master.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">04</div>
+                    <h3>Messaging</h3>
+                    <p>Stay in touch, coordinate projects, and continue conversations inside the platform.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">05</div>
+                    <h3>Project Collaboration</h3>
+                    <p>Create projects, request to join teams, and build with people who match your energy.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">06</div>
+                    <h3>Growth Dashboard</h3>
+                    <p>Track your activity, skills, requests, and notifications from one clean dashboard.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="landing-section alt-section">
+        <div class="container">
+            <div class="section-heading">
+                <span>How it works</span>
+                <h2>From potential to progress</h2>
+                <p>GrowLink is built around a simple but powerful growth loop.</p>
+            </div>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Create your profile</h3>
+                    <p>Show who you are, what you know, and what you want to learn.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Discover people and projects</h3>
+                    <p>Explore users, search skills, and find meaningful opportunities.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Connect and learn</h3>
+                    <p>Send requests, start conversations, and build valuable relationships.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Collaborate and grow</h3>
+                    <p>Join projects, create teams, and turn goals into real action.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- USE CASES -->
+    <section class="landing-section">
+        <div class="container">
+            <div class="section-heading">
+                <span>Built for ambitious people</span>
+                <h2>Who GrowLink is for</h2>
+                <p>Whether you’re learning, building, or leading, GrowLink helps you move forward.</p>
+            </div>
+
+            <div class="usecase-grid">
+                <div class="usecase-card">
+                    <h3>Students</h3>
+                    <p>Find peers, mentors, and practical learning opportunities beyond the classroom.</p>
+                </div>
+
+                <div class="usecase-card">
+                    <h3>Developers</h3>
+                    <p>Collaborate on ideas, join projects, and connect with people building real things.</p>
+                </div>
+
+                <div class="usecase-card">
+                    <h3>Creators</h3>
+                    <p>Meet designers, editors, marketers, and other makers who can help you grow.</p>
+                </div>
+
+                <div class="usecase-card">
+                    <h3>Future founders</h3>
+                    <p>Find teammates, validate ideas, and build startup energy through real collaboration.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="landing-cta">
+        <div class="container">
+            <div class="cta-card">
+                <span>Start your next chapter</span>
+                <h2>Don’t just browse. Build your growth network.</h2>
+                <p>
+                    Join GrowLink and start learning, connecting, and creating with people who move you forward.
+                </p>
+
+                <div class="landing-hero-actions">
+                    <a th:href="@{/register}" class="btn btn-primary">Create Account</a>
+                    <a th:href="@{/login}" class="btn btn-secondary">Login</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>

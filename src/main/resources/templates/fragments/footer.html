@@ -1,9 +1,39 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-<footer th:fragment="footer" class="footer">
-    <div class="container">
-        <p>&copy; 2026 GrowLink. Learn. Connect. Build.</p>
+<footer th:fragment="footer" class="footer footer-upgraded">
+    <div class="container footer-grid">
+        <div>
+            <h3 class="footer-brand">GrowLink</h3>
+            <p class="footer-text">
+                Learn. Connect. Build.  
+                A platform for people who want to grow through skills, relationships, and collaboration.
+            </p>
+        </div>
+
+        <div>
+            <h4>Platform</h4>
+            <ul class="footer-list">
+                <li><a th:href="@{/explore/users}">Explore Users</a></li>
+                <li><a th:href="@{/explore/projects}">Explore Projects</a></li>
+                <li><a th:href="@{/projects}">Projects</a></li>
+                <li><a th:href="@{/messages}">Messages</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <h4>Account</h4>
+            <ul class="footer-list">
+                <li><a th:href="@{/register}">Create Account</a></li>
+                <li><a th:href="@{/login}">Login</a></li>
+                <li><a th:href="@{/dashboard}">Dashboard</a></li>
+                <li><a th:href="@{/profile}">My Profile</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container footer-bottom">
+        <p>&copy; 2026 GrowLink. All rights reserved.</p>
     </div>
 </footer>
 </body>

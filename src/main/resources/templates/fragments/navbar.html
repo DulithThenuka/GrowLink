@@ -7,19 +7,15 @@
 
         <div class="nav-links">
             <a th:href="@{/}">Home</a>
-            <a th:href="@{/dashboard}">Dashboard</a>
-            <a th:href="@{/profile}">My Profile</a>
-            <a th:href="@{/skills}">My Skills</a>
-            <a th:href="@{/connections}">Connections</a>
-            <a th:href="@{/learning-requests}">Learning</a>
-            <a th:href="@{/messages}">Messages</a>
-            <a th:href="@{/notifications}">Notifications</a>
-            <a th:href="@{/projects}">Projects</a>
-            <a th:href="@{/admin}">Admin</a>
-            <a th:href="@{/login}">Login</a>
-            <a th:href="@{/register}">Register</a>
             <a th:href="@{/explore/users}">Explore Users</a>
             <a th:href="@{/explore/projects}">Explore Projects</a>
+            <a th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/profile}">My Profile</a>
+            <a th:href="@{/projects}">Projects</a>
+            <a th:href="@{/messages}">Messages</a>
+            <a th:href="@{/notifications}">Notifications</a>
+            <a th:href="@{/login}">Login</a>
+            <a th:href="@{/register}">Register</a>
 
             <form th:action="@{/logout}" method="post" class="logout-form">
                 <button type="submit" class="logout-btn">Logout</button>

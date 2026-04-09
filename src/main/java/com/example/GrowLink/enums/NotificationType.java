@@ -5,5 +5,8 @@ public enum NotificationType {
     LEARNING_REQUEST,
     PROJECT_REQUEST,
     REVIEW,
-    SYSTEM
+    SYSTEM,
+    MESSAGE,
+    LIKE,
+    COMMENT
 }
