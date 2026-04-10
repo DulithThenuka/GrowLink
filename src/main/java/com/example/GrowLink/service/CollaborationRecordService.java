@@ -26,26 +26,53 @@ public class CollaborationRecordService {
 
     public boolean hasCompletedCollaboration(User user1, User user2) {
         return getRecord(user1, user2)
-                .map(CollaborationRecord::isCompleted)
+                .map(CollaborationRecord::isFullyConfirmed)
                 .orElse(false);
     }
 
+    public boolean hasUserConfirmed(User currentUser, User otherUser) {
+        Optional<CollaborationRecord> optionalRecord = getRecord(currentUser, otherUser);
+
+        if (optionalRecord.isEmpty()) {
+            return false;
+        }
+
+        CollaborationRecord record = optionalRecord.get();
+
+        if (record.getUserOne().getId().equals(currentUser.getId())) {
+            return record.isUserOneConfirmed();
+        }
+
+        if (record.getUserTwo().getId().equals(currentUser.getId())) {
+            return record.isUserTwoConfirmed();
+        }
+
+        return false;
+    }
+
     @Transactional
-    public CollaborationRecord markCompleted(User user1, User user2, String note) {
-        CollaborationRecord record = getRecord(user1, user2).orElseGet(CollaborationRecord::new);
+    public CollaborationRecord confirmCollaboration(User currentUser, User otherUser, String note) {
+        CollaborationRecord record = getRecord(currentUser, otherUser).orElseGet(CollaborationRecord::new);
 
         if (record.getId() == null) {
-            if (user1.getId() < user2.getId()) {
-                record.setUserOne(user1);
-                record.setUserTwo(user2);
+            if (currentUser.getId() < otherUser.getId()) {
+                record.setUserOne(currentUser);
+                record.setUserTwo(otherUser);
             } else {
-                record.setUserOne(user2);
-                record.setUserTwo(user1);
+                record.setUserOne(otherUser);
+                record.setUserTwo(currentUser);
             }
         }
 
-        record.setCompleted(true);
-        record.setNote(note != null ? note.trim() : null);
+        if (record.getUserOne().getId().equals(currentUser.getId())) {
+            record.setUserOneConfirmed(true);
+        } else if (record.getUserTwo().getId().equals(currentUser.getId())) {
+            record.setUserTwoConfirmed(true);
+        }
+
+        if (note != null && !note.trim().isEmpty()) {
+            record.setNote(note.trim());
+        }
 
         return collaborationRecordRepository.save(record);
     }

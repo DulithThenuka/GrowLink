@@ -25,8 +25,11 @@ public class CollaborationRecord {
     @JoinColumn(name = "user_two_id", nullable = false)
     private User userTwo;
 
-    @Column(nullable = false)
-    private boolean completed = false;
+    @Column(name = "user_one_confirmed", nullable = false)
+    private boolean userOneConfirmed = false;
+
+    @Column(name = "user_two_confirmed", nullable = false)
+    private boolean userTwoConfirmed = false;
 
     @Column(length = 500)
     private String note;
@@ -71,12 +74,24 @@ public class CollaborationRecord {
         this.userTwo = userTwo;
     }
 
-    public boolean isCompleted() {
-        return completed;
+    public boolean isUserOneConfirmed() {
+        return userOneConfirmed;
     }
 
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
+    public void setUserOneConfirmed(boolean userOneConfirmed) {
+        this.userOneConfirmed = userOneConfirmed;
+    }
+
+    public boolean isUserTwoConfirmed() {
+        return userTwoConfirmed;
+    }
+
+    public void setUserTwoConfirmed(boolean userTwoConfirmed) {
+        this.userTwoConfirmed = userTwoConfirmed;
+    }
+
+    public boolean isFullyConfirmed() {
+        return userOneConfirmed && userTwoConfirmed;
     }
 
     public String getNote() {

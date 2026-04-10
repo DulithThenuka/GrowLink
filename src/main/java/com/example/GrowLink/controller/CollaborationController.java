@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.example.GrowLink.entity.CollaborationRecord;
 import com.example.GrowLink.entity.User;
 import com.example.GrowLink.service.CollaborationRecordService;
 import com.example.GrowLink.service.ConnectionService;
@@ -27,10 +28,10 @@ public class CollaborationController {
     }
 
     @PostMapping("/collaborations/complete")
-    public String markCompleted(@RequestParam("otherUserId") Long otherUserId,
-                                @RequestParam(value = "note", required = false) String note,
-                                Authentication authentication,
-                                RedirectAttributes redirectAttributes) {
+    public String confirmCollaboration(@RequestParam("otherUserId") Long otherUserId,
+                                       @RequestParam(value = "note", required = false) String note,
+                                       Authentication authentication,
+                                       RedirectAttributes redirectAttributes) {
 
         if (authentication == null || !authentication.isAuthenticated()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Please log in first.");
@@ -62,9 +63,22 @@ public class CollaborationController {
             return "redirect:/profile/" + otherUserId;
         }
 
-        collaborationRecordService.markCompleted(loggedUser, otherUser, note);
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Collaboration marked completed. Reviews are now unlocked.");
+        boolean alreadyConfirmed = collaborationRecordService.hasUserConfirmed(loggedUser, otherUser);
+
+        if (alreadyConfirmed) {
+            redirectAttributes.addFlashAttribute("errorMessage", "You already confirmed this collaboration.");
+            return "redirect:/profile/" + otherUserId;
+        }
+
+        CollaborationRecord record = collaborationRecordService.confirmCollaboration(loggedUser, otherUser, note);
+
+        if (record.isFullyConfirmed()) {
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Both users confirmed collaboration. Reviews are now unlocked.");
+        } else {
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Your confirmation was saved. Waiting for the other user to confirm.");
+        }
 
         return "redirect:/profile/" + otherUserId;
     }

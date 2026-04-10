@@ -47,6 +47,8 @@ public class ProfileController {
         User loggedUser = null;
         Review myReview = null;
         boolean connected = false;
+        boolean currentUserConfirmed = false;
+        boolean otherUserConfirmed = false;
         boolean collaborationCompleted = false;
         boolean canReview = false;
 
@@ -55,8 +57,13 @@ public class ProfileController {
 
             if (!loggedUser.getId().equals(profileUser.getId())) {
                 connected = connectionService.areConnected(loggedUser, profileUser);
-                collaborationCompleted = collaborationRecordService.hasCompletedCollaboration(loggedUser, profileUser);
-                canReview = connected && collaborationCompleted;
+
+                if (connected) {
+                    currentUserConfirmed = collaborationRecordService.hasUserConfirmed(loggedUser, profileUser);
+                    otherUserConfirmed = collaborationRecordService.hasUserConfirmed(profileUser, loggedUser);
+                    collaborationCompleted = collaborationRecordService.hasCompletedCollaboration(loggedUser, profileUser);
+                    canReview = collaborationCompleted;
+                }
 
                 Optional<Review> existing = reviewService.getReviewByReviewerAndReviewed(loggedUser, profileUser);
                 if (existing.isPresent()) {
@@ -76,6 +83,8 @@ public class ProfileController {
         model.addAttribute("reviewCount", reviewCount);
         model.addAttribute("myReview", myReview);
         model.addAttribute("connected", connected);
+        model.addAttribute("currentUserConfirmed", currentUserConfirmed);
+        model.addAttribute("otherUserConfirmed", otherUserConfirmed);
         model.addAttribute("collaborationCompleted", collaborationCompleted);
         model.addAttribute("canReview", canReview);
 

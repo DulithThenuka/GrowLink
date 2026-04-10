@@ -1,40 +1,78 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Notifications - GrowLink')}"></head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications | GrowLink</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
 <body>
 
-<header th:replace="~{fragments/navbar :: navbar}"></header>
+<div class="notifications-page">
+    <div class="notifications-container">
 
-<main class="notifications-page">
-    <div class="container">
-        <div class="skills-header">
-            <h1>Notifications</h1>
-            <p>Stay updated with activity across GrowLink.</p>
+        <div class="notifications-topbar">
+            <div>
+                <h1>Notifications</h1>
+                <p>Stay updated with connection activity and platform alerts.</p>
+            </div>
+
+            <form th:action="@{/notifications/read-all}" method="post">
+                <button type="submit" class="mark-all-btn">
+                    <i class="fa-solid fa-check-double"></i> Mark all as read
+                </button>
+            </form>
         </div>
 
-        <section class="skills-card">
-            <div th:if="${#lists.isEmpty(notifications)}" class="empty-state">
-                No notifications yet.
-            </div>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-            <div th:each="notification : ${notifications}" class="notification-item">
-                <div class="notification-top">
-                    <h3 th:text="${notification.title}">Notification Title</h3>
-                    <span class="skill-badge secondary" th:text="${notification.type}">TYPE</span>
+        <div class="unread-summary">
+            <span class="unread-badge" th:text="${unreadCount}">0</span>
+            <span>Unread notifications</span>
+        </div>
+
+        <div class="notifications-list" th:if="${notifications != null and !#lists.isEmpty(notifications)}">
+            <div class="notification-card"
+                 th:each="notification : ${notifications}"
+                 th:classappend="${notification.isRead} ? ' read' : ' unread'">
+
+                <div class="notification-left">
+                    <div class="notification-icon">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+
+                    <div class="notification-content">
+                        <h3 th:text="${notification.title}">Notification Title</h3>
+                        <p th:text="${notification.message}">Notification message</p>
+                        <small th:text="${#temporals.format(notification.createdAt, 'dd MMM yyyy - hh:mm a')}">
+                            10 Apr 2026 - 09:30 AM
+                        </small>
+                    </div>
                 </div>
 
-                <p th:text="${notification.message}">Notification message</p>
+                <div class="notification-actions" th:if="${!notification.isRead}">
+                    <form th:action="@{/notifications/read}" method="post">
+                        <input type="hidden" name="notificationId" th:value="${notification.id}">
+                        <button type="submit" class="mark-read-btn">Mark as read</button>
+                    </form>
+                </div>
 
-                <small class="notification-time"
-                       th:text="${#temporals.format(notification.createdAt, 'yyyy-MM-dd HH:mm')}">
-                    2026-04-08 10:00
-                </small>
+                <div class="notification-actions" th:if="${notification.isRead}">
+                    <span class="read-label">Read</span>
+                </div>
             </div>
-        </section>
-    </div>
-</main>
+        </div>
 
-<footer th:replace="~{fragments/footer :: footer}"></footer>
+        <div class="empty-notifications" th:if="${notifications == null or #lists.isEmpty(notifications)}">
+            <i class="fa-regular fa-bell-slash"></i>
+            <h3>No notifications yet</h3>
+            <p>When someone interacts with you, notifications will appear here.</p>
+        </div>
+
+    </div>
+</div>
 
 </body>
 </html>
