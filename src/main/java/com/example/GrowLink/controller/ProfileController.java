@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.example.GrowLink.entity.Review;
 import com.example.GrowLink.entity.User;
+import com.example.GrowLink.service.CollaborationRecordService;
 import com.example.GrowLink.service.ConnectionService;
 import com.example.GrowLink.service.ReviewService;
 import com.example.GrowLink.service.UserService;
@@ -21,32 +22,41 @@ public class ProfileController {
     private final UserService userService;
     private final ReviewService reviewService;
     private final ConnectionService connectionService;
+    private final CollaborationRecordService collaborationRecordService;
 
     public ProfileController(UserService userService,
                              ReviewService reviewService,
-                             ConnectionService connectionService) {
+                             ConnectionService connectionService,
+                             CollaborationRecordService collaborationRecordService) {
         this.userService = userService;
         this.reviewService = reviewService;
         this.connectionService = connectionService;
+        this.collaborationRecordService = collaborationRecordService;
     }
 
     @GetMapping("/profile/{id}")
     public String viewProfile(@PathVariable Long id, Authentication authentication, Model model) {
-        User profileUser = userService.getUserById(id);
+        User profileUser;
 
-        if (profileUser == null) {
+        try {
+            profileUser = userService.getUserById(id);
+        } catch (IllegalArgumentException ex) {
             return "redirect:/";
         }
 
         User loggedUser = null;
         Review myReview = null;
+        boolean connected = false;
+        boolean collaborationCompleted = false;
         boolean canReview = false;
 
         if (authentication != null && authentication.isAuthenticated()) {
             loggedUser = userService.getUserByEmail(authentication.getName());
 
-            if (loggedUser != null && !loggedUser.getId().equals(profileUser.getId())) {
-                canReview = connectionService.areConnected(loggedUser, profileUser);
+            if (!loggedUser.getId().equals(profileUser.getId())) {
+                connected = connectionService.areConnected(loggedUser, profileUser);
+                collaborationCompleted = collaborationRecordService.hasCompletedCollaboration(loggedUser, profileUser);
+                canReview = connected && collaborationCompleted;
 
                 Optional<Review> existing = reviewService.getReviewByReviewerAndReviewed(loggedUser, profileUser);
                 if (existing.isPresent()) {
@@ -65,6 +75,8 @@ public class ProfileController {
         model.addAttribute("averageRating", averageRating);
         model.addAttribute("reviewCount", reviewCount);
         model.addAttribute("myReview", myReview);
+        model.addAttribute("connected", connected);
+        model.addAttribute("collaborationCompleted", collaborationCompleted);
         model.addAttribute("canReview", canReview);
 
         return "profile/view";

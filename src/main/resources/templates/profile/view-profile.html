@@ -40,96 +40,137 @@
 
         <section class="review-section">
 
-            <div class="review-summary-card">
-                <h2>Reviews & Ratings</h2>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-                <div class="rating-overview">
-                    <div class="big-rating" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">0.0</div>
+    <div class="review-summary-card">
+        <h2>Reviews & Ratings</h2>
 
-                    <div class="rating-meta">
-                        <div class="stars-line">
-                            <span th:each="i : ${#numbers.sequence(1,5)}">
-                                <i th:class="${i <= T(java.lang.Math).round(averageRating)} ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
-                            </span>
-                        </div>
-                        <p><span th:text="${reviewCount}">0</span> reviews</p>
-                    </div>
+        <div class="rating-overview">
+            <div class="big-rating" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">0.0</div>
+
+            <div class="rating-meta">
+                <div class="stars-line">
+                    <span th:each="i : ${#numbers.sequence(1,5)}">
+                        <i th:class="${i <= T(java.lang.Math).round(averageRating)} ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                    </span>
+                </div>
+                <p><span th:text="${reviewCount}">0</span> reviews</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="review-form-card"
+         th:if="${loggedUser != null and profileUser.id != loggedUser.id}">
+
+        <div class="collaboration-status-box">
+            <div class="status-pill" th:classappend="${connected} ? ' status-ok' : ' status-off'">
+                <i class="fa-solid fa-link"></i>
+                <span th:text="${connected} ? 'Connected' : 'Not connected yet'">Connected</span>
+            </div>
+
+            <div class="status-pill" th:classappend="${collaborationCompleted} ? ' status-ok' : ' status-off'">
+                <i class="fa-solid fa-people-arrows"></i>
+                <span th:text="${collaborationCompleted} ? 'Collaboration completed' : 'Collaboration not completed'">
+                    Collaboration completed
+                </span>
+            </div>
+        </div>
+
+        <div th:if="${connected and !collaborationCompleted}" class="complete-collab-card">
+            <h3>Complete Collaboration</h3>
+            <p>Mark this as a real completed collaboration to unlock reviews.</p>
+
+            <form th:action="@{/collaborations/complete}" method="post" class="review-form">
+                <input type="hidden" name="otherUserId" th:value="${profileUser.id}">
+
+                <label for="collabNote">Collaboration Note</label>
+                <textarea id="collabNote"
+                          name="note"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Example: Worked together on design, backend, or project research."></textarea>
+
+                <button type="submit" class="complete-collab-btn">
+                    Mark Collaboration Completed
+                </button>
+            </form>
+        </div>
+
+        <div th:if="${canReview}">
+            <h3 th:text="${myReview != null} ? 'Edit Your Review' : 'Write a Review'">Write a Review</h3>
+
+            <form th:action="@{/reviews/save}" method="post" class="review-form">
+                <input type="hidden" name="reviewedUserId" th:value="${profileUser.id}">
+                <input type="hidden" id="ratingInput" name="rating" th:value="${myReview != null ? myReview.rating : ''}">
+
+                <label>Rating</label>
+                <div class="star-picker">
+                    <i class="fa-regular fa-star review-star" data-value="1"></i>
+                    <i class="fa-regular fa-star review-star" data-value="2"></i>
+                    <i class="fa-regular fa-star review-star" data-value="3"></i>
+                    <i class="fa-regular fa-star review-star" data-value="4"></i>
+                    <i class="fa-regular fa-star review-star" data-value="5"></i>
+                </div>
+
+                <label for="comment">Comment</label>
+                <textarea id="comment"
+                          name="comment"
+                          rows="4"
+                          maxlength="1000"
+                          placeholder="Share your real collaboration experience..."
+                          th:text="${myReview != null ? myReview.comment : ''}"></textarea>
+
+                <button type="submit" class="review-btn">
+                    <span th:text="${myReview != null} ? 'Update Review' : 'Submit Review'">Submit Review</span>
+                </button>
+            </form>
+
+            <form th:if="${myReview != null}" th:action="@{/reviews/delete}" method="post" style="margin-top: 12px;">
+                <input type="hidden" name="reviewedUserId" th:value="${profileUser.id}">
+                <button type="submit" class="delete-review-btn">Delete Review</button>
+            </form>
+        </div>
+
+        <div th:if="${!connected}" class="review-lock-message">
+            <i class="fa-solid fa-lock"></i>
+            <span>You must be connected first before collaboration and reviews can happen.</span>
+        </div>
+
+        <div th:if="${connected and !collaborationCompleted}" class="review-lock-message">
+            <i class="fa-solid fa-shield"></i>
+            <span>Review is locked until a real collaboration is marked completed.</span>
+        </div>
+    </div>
+
+    <div class="review-list-card">
+        <h3>What people say</h3>
+
+        <div th:if="${#lists.isEmpty(reviews)}" class="empty-reviews">
+            No reviews yet.
+        </div>
+
+        <div th:each="review : ${reviews}" class="review-item">
+            <div class="review-top">
+                <div>
+                    <h4 th:text="${review.reviewer.fullName}">Reviewer Name</h4>
+                    <small th:text="${#temporals.format(review.createdAt, 'dd MMM yyyy HH:mm')}">09 Apr 2026</small>
+                </div>
+
+                <div class="review-stars">
+                    <span th:each="i : ${#numbers.sequence(1,5)}">
+                        <i th:class="${i <= review.rating} ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+                    </span>
                 </div>
             </div>
 
-            <div class="review-form-card"
-                 th:if="${loggedUser != null and profileUser.id != loggedUser.id}">
-
-                <div th:if="${canReview}">
-                    <h3 th:text="${myReview != null} ? 'Edit Your Review' : 'Write a Review'">Write a Review</h3>
-
-                    <form th:action="@{/reviews/save}" method="post" class="review-form">
-                        <input type="hidden" name="reviewedUserId" th:value="${profileUser.id}">
-                        <input type="hidden" id="ratingInput" name="rating" th:value="${myReview != null ? myReview.rating : ''}">
-
-                        <label>Rating</label>
-                        <div class="star-picker">
-                            <i class="fa-regular fa-star review-star" data-value="1"></i>
-                            <i class="fa-regular fa-star review-star" data-value="2"></i>
-                            <i class="fa-regular fa-star review-star" data-value="3"></i>
-                            <i class="fa-regular fa-star review-star" data-value="4"></i>
-                            <i class="fa-regular fa-star review-star" data-value="5"></i>
-                        </div>
-
-                        <label for="comment">Comment</label>
-                        <textarea id="comment"
-                                  name="comment"
-                                  rows="4"
-                                  maxlength="1000"
-                                  placeholder="Share your experience..."
-                                  th:text="${myReview != null ? myReview.comment : ''}"></textarea>
-
-                        <button type="submit" class="review-btn">
-                            <span th:text="${myReview != null} ? 'Update Review' : 'Submit Review'">Submit Review</span>
-                        </button>
-                    </form>
-
-                    <form th:if="${myReview != null}" th:action="@{/reviews/delete}" method="post" style="margin-top: 12px;">
-                        <input type="hidden" name="reviewedUserId" th:value="${profileUser.id}">
-                        <button type="submit" class="delete-review-btn">Delete Review</button>
-                    </form>
-                </div>
-
-                <div th:if="${!canReview}" class="review-lock-message">
-                    <i class="fa-solid fa-lock"></i>
-                    <span>You can only review users after a real accepted connection.</span>
-                </div>
-            </div>
-
-            <div class="review-list-card">
-                <h3>What people say</h3>
-
-                <div th:if="${#lists.isEmpty(reviews)}" class="empty-reviews">
-                    No reviews yet.
-                </div>
-
-                <div th:each="review : ${reviews}" class="review-item">
-                    <div class="review-top">
-                        <div>
-                            <h4 th:text="${review.reviewer.fullName}">Reviewer Name</h4>
-                            <small th:text="${#temporals.format(review.createdAt, 'dd MMM yyyy HH:mm')}">09 Apr 2026</small>
-                        </div>
-
-                        <div class="review-stars">
-                            <span th:each="i : ${#numbers.sequence(1,5)}">
-                                <i th:class="${i <= review.rating} ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
-                            </span>
-                        </div>
-                    </div>
-
-                    <p class="review-comment"
-                       th:text="${review.comment != null and !#strings.isEmpty(review.comment) ? review.comment : 'No written comment.'}">
-                        Great collaborator.
-                    </p>
-                </div>
-            </div>
-
-        </section>
+            <p class="review-comment"
+               th:text="${review.comment != null and !#strings.isEmpty(review.comment) ? review.comment : 'No written comment.'}">
+                Great collaborator.
+            </p>
+        </div>
+    </div>
+</section>
 
     </div>
 </div>

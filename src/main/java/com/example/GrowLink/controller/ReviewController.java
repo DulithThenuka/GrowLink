@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.GrowLink.entity.User;
+import com.example.GrowLink.service.CollaborationRecordService;
 import com.example.GrowLink.service.ConnectionService;
 import com.example.GrowLink.service.ReviewService;
 import com.example.GrowLink.service.UserService;
@@ -17,13 +18,16 @@ public class ReviewController {
     private final ReviewService reviewService;
     private final UserService userService;
     private final ConnectionService connectionService;
+    private final CollaborationRecordService collaborationRecordService;
 
     public ReviewController(ReviewService reviewService,
                             UserService userService,
-                            ConnectionService connectionService) {
+                            ConnectionService connectionService,
+                            CollaborationRecordService collaborationRecordService) {
         this.reviewService = reviewService;
         this.userService = userService;
         this.connectionService = connectionService;
+        this.collaborationRecordService = collaborationRecordService;
     }
 
     @PostMapping("/reviews/save")
@@ -39,9 +43,11 @@ public class ReviewController {
         }
 
         User reviewer = userService.getUserByEmail(authentication.getName());
-        User reviewedUser = userService.getUserById(reviewedUserId);
+        User reviewedUser;
 
-        if (reviewer == null || reviewedUser == null) {
+        try {
+            reviewedUser = userService.getUserById(reviewedUserId);
+        } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", "User not found.");
             return "redirect:/";
         }
@@ -52,7 +58,12 @@ public class ReviewController {
         }
 
         if (!connectionService.areConnected(reviewer, reviewedUser)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "You can only review users you are connected with.");
+            redirectAttributes.addFlashAttribute("errorMessage", "You can only review connected users.");
+            return "redirect:/profile/" + reviewedUserId;
+        }
+
+        if (!collaborationRecordService.hasCompletedCollaboration(reviewer, reviewedUser)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Reviews unlock only after completed collaboration.");
             return "redirect:/profile/" + reviewedUserId;
         }
 
@@ -68,6 +79,7 @@ public class ReviewController {
 
         reviewService.saveOrUpdateReview(reviewer, reviewedUser, rating, comment);
         redirectAttributes.addFlashAttribute("successMessage", "Review saved successfully.");
+
         return "redirect:/profile/" + reviewedUserId;
     }
 
@@ -82,9 +94,11 @@ public class ReviewController {
         }
 
         User reviewer = userService.getUserByEmail(authentication.getName());
-        User reviewedUser = userService.getUserById(reviewedUserId);
+        User reviewedUser;
 
-        if (reviewer == null || reviewedUser == null) {
+        try {
+            reviewedUser = userService.getUserById(reviewedUserId);
+        } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", "User not found.");
             return "redirect:/";
         }
