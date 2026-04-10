@@ -1936,3 +1936,18 @@ select option {
     transform: translateY(-1px);
     opacity: 0.95;
 }
+.profile-headline {
+    margin: 0 0 10px;
+    color: #2563eb;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.profile-location {
+    margin: 0 0 12px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
