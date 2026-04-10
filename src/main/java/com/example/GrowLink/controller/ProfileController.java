@@ -32,7 +32,7 @@ public class ProfileController {
 
     @GetMapping("/profile/{id}")
     public String viewProfile(@PathVariable Long id, Authentication authentication, Model model) {
-        User profileUser = userService.getUserById(id).orElse(null);
+        User profileUser = userService.getUserById(id);
 
         if (profileUser == null) {
             return "redirect:/";
@@ -43,7 +43,7 @@ public class ProfileController {
         boolean canReview = false;
 
         if (authentication != null && authentication.isAuthenticated()) {
-            loggedUser = userService.getUserByEmail(authentication.getName()).orElse(null);
+            loggedUser = userService.getUserByEmail(authentication.getName());
 
             if (loggedUser != null && !loggedUser.getId().equals(profileUser.getId())) {
                 canReview = connectionService.areConnected(loggedUser, profileUser);

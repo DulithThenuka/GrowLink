@@ -153,13 +153,13 @@ public class ConnectionService {
         return false;
     }
 
-    return connectionRepository.findAll().stream().anyMatch(connection ->
+    return connectionRequestRepository.findAll().stream().anyMatch(connection ->
             "ACCEPTED".equalsIgnoreCase(connection.getStatus().name()) &&
             (
-                (connection.getRequester().getId().equals(user1.getId()) &&
+                (connection.getSender().getId().equals(user1.getId()) &&
                  connection.getReceiver().getId().equals(user2.getId()))
              ||
-                (connection.getRequester().getId().equals(user2.getId()) &&
+                (connection.getSender().getId().equals(user2.getId()) &&
                  connection.getReceiver().getId().equals(user1.getId()))
             )
     );

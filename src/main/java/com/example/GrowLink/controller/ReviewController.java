@@ -38,8 +38,8 @@ public class ReviewController {
             return "redirect:/login";
         }
 
-        User reviewer = userService.getUserByEmail(authentication.getName()).orElse(null);
-        User reviewedUser = userService.getUserById(reviewedUserId).orElse(null);
+        User reviewer = userService.getUserByEmail(authentication.getName());
+        User reviewedUser = userService.getUserById(reviewedUserId);
 
         if (reviewer == null || reviewedUser == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "User not found.");
@@ -81,8 +81,8 @@ public class ReviewController {
             return "redirect:/login";
         }
 
-        User reviewer = userService.getUserByEmail(authentication.getName()).orElse(null);
-        User reviewedUser = userService.getUserById(reviewedUserId).orElse(null);
+        User reviewer = userService.getUserByEmail(authentication.getName());
+        User reviewedUser = userService.getUserById(reviewedUserId);
 
         if (reviewer == null || reviewedUser == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "User not found.");
