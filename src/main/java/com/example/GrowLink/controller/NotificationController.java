@@ -36,13 +36,15 @@ public class NotificationController {
         User loggedUser = userService.getUserByEmail(authentication.getName());
 
         List<Notification> notifications = notificationService.getNotificationsForUser(loggedUser);
+        List<Notification> unreadNotifications = notificationService.getUnreadNotifications(loggedUser);
         long unreadCount = notificationService.getUnreadCount(loggedUser);
 
         model.addAttribute("loggedUser", loggedUser);
         model.addAttribute("notifications", notifications);
+        model.addAttribute("unreadNotifications", unreadNotifications);
         model.addAttribute("unreadCount", unreadCount);
 
-        return "notifications";
+        return "notifications/notifications";
     }
 
     @PostMapping("/notifications/read")

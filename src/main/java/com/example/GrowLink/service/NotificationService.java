@@ -15,9 +15,12 @@ import com.example.GrowLink.repository.NotificationRepository;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final UserService userService;
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(NotificationRepository notificationRepository,
+                               UserService userService) {
         this.notificationRepository = notificationRepository;
+        this.userService = userService;
     }
 
     @Transactional
@@ -38,15 +41,33 @@ public class NotificationService {
     }
 
     public List<Notification> getNotificationsForUser(User user) {
+        if (user == null) {
+            return List.of();
+        }
         return notificationRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
     public List<Notification> getUnreadNotifications(User user) {
+        if (user == null) {
+            return List.of();
+        }
         return notificationRepository.findByUserAndIsReadFalseOrderByCreatedAtDesc(user);
     }
 
     public long getUnreadCount(User user) {
+        if (user == null) {
+            return 0;
+        }
         return notificationRepository.countByUserAndIsReadFalse(user);
+    }
+
+    public long getUnreadCountByUserEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return 0;
+        }
+
+        User user = userService.getUserByEmail(email);
+        return getUnreadCount(user);
     }
 
     @Transactional
@@ -61,6 +82,10 @@ public class NotificationService {
             return;
         }
 
+        if (Boolean.TRUE.equals(notification.getIsRead())) {
+            return;
+        }
+
         notification.setIsRead(true);
         notificationRepository.save(notification);
     }
@@ -71,7 +96,8 @@ public class NotificationService {
             return;
         }
 
-        List<Notification> unreadNotifications = notificationRepository.findByUserAndIsReadFalseOrderByCreatedAtDesc(user);
+        List<Notification> unreadNotifications =
+                notificationRepository.findByUserAndIsReadFalseOrderByCreatedAtDesc(user);
 
         for (Notification notification : unreadNotifications) {
             notification.setIsRead(true);

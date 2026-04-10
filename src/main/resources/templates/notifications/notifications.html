@@ -9,18 +9,21 @@
 </head>
 <body>
 
+<div th:replace="fragments/navbar :: navbar"></div>
+
 <div class="notifications-page">
     <div class="notifications-container">
 
         <div class="notifications-topbar">
             <div>
                 <h1>Notifications</h1>
-                <p>Stay updated with connection activity and platform alerts.</p>
+                <p>Stay updated with your connections, projects, requests, reviews, and messages.</p>
             </div>
 
-            <form th:action="@{/notifications/read-all}" method="post">
+            <form th:if="${unreadCount > 0}" th:action="@{/notifications/read-all}" method="post">
                 <button type="submit" class="mark-all-btn">
-                    <i class="fa-solid fa-check-double"></i> Mark all as read
+                    <i class="fa-solid fa-check-double"></i>
+                    Mark all as read
                 </button>
             </form>
         </div>
@@ -40,12 +43,26 @@
 
                 <div class="notification-left">
                     <div class="notification-icon">
-                        <i class="fa-solid fa-bell"></i>
+                        <i th:if="${notification.type.name() == 'CONNECTION'}" class="fa-solid fa-user-group"></i>
+                        <i th:if="${notification.type.name() == 'LEARNING_REQUEST'}" class="fa-solid fa-graduation-cap"></i>
+                        <i th:if="${notification.type.name() == 'PROJECT_REQUEST'}" class="fa-solid fa-diagram-project"></i>
+                        <i th:if="${notification.type.name() == 'REVIEW'}" class="fa-solid fa-star"></i>
+                        <i th:if="${notification.type.name() == 'MESSAGE'}" class="fa-solid fa-envelope"></i>
+                        <i th:if="${notification.type.name() == 'SYSTEM'}" class="fa-solid fa-bell"></i>
+                        <i th:if="${notification.type.name() == 'LIKE'}" class="fa-solid fa-heart"></i>
+                        <i th:if="${notification.type.name() == 'COMMENT'}" class="fa-solid fa-comment"></i>
                     </div>
 
                     <div class="notification-content">
+                        <div class="notification-meta">
+                            <span class="notification-type" th:text="${notification.type}">SYSTEM</span>
+                            <span class="notification-status"
+                                  th:text="${notification.isRead} ? 'Read' : 'Unread'">Unread</span>
+                        </div>
+
                         <h3 th:text="${notification.title}">Notification Title</h3>
                         <p th:text="${notification.message}">Notification message</p>
+
                         <small th:text="${#temporals.format(notification.createdAt, 'dd MMM yyyy - hh:mm a')}">
                             10 Apr 2026 - 09:30 AM
                         </small>
@@ -68,7 +85,7 @@
         <div class="empty-notifications" th:if="${notifications == null or #lists.isEmpty(notifications)}">
             <i class="fa-regular fa-bell-slash"></i>
             <h3>No notifications yet</h3>
-            <p>When someone interacts with you, notifications will appear here.</p>
+            <p>When someone interacts with your profile, projects, or messages, notifications will appear here.</p>
         </div>
 
     </div>
