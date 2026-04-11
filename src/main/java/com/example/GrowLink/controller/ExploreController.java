@@ -44,13 +44,18 @@ public class ExploreController {
     public String exploreProjects(@RequestParam(required = false) String keyword,
                                   @RequestParam(required = false) String category,
                                   @RequestParam(required = false) ProjectStatus status,
-                                  Model model) {
+                                  Model model,
+                                  Principal principal) {
 
         model.addAttribute("projects", projectService.searchProjects(keyword, category, status));
         model.addAttribute("keyword", keyword);
         model.addAttribute("category", category);
         model.addAttribute("status", status);
         model.addAttribute("statuses", ProjectStatus.values());
+
+        if (principal != null) {
+            model.addAttribute("recommendedProjects", projectService.getRecommendedProjects(principal.getName()));
+        }
 
         return "explore/projects";
     }

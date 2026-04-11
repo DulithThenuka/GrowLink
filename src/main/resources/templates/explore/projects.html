@@ -18,8 +18,40 @@
             <a th:href="@{/projects}" class="btn btn-secondary">My Projects</a>
         </div>
 
-        <form method="get" th:action="@{/explore/projects}" class="search-bar">
+        <div th:if="${recommendedProjects != null and !#lists.isEmpty(recommendedProjects)}" class="skills-card all-projects-section">
+            <div class="projects-topbar">
+                <div>
+                    <h2>Recommended For You</h2>
+                    <p>These projects match your current skills and interests.</p>
+                </div>
+            </div>
 
+            <div class="projects-grid">
+                <a th:each="project : ${recommendedProjects}"
+                   th:href="@{/projects/{id}(id=${project.id})}"
+                   class="project-item project-link-card">
+                    <h3 th:text="${project.title}">Project Title</h3>
+
+                    <p class="skill-category"
+                       th:text="${project.category != null and !#strings.isEmpty(project.category) ? project.category : 'No category'}">
+                        Category
+                    </p>
+
+                    <p th:text="${project.description != null and project.description.length() > 150 ? #strings.substring(project.description, 0, 150) + '...' : project.description}">
+                        Description
+                    </p>
+
+                    <p>
+                        Owner:
+                        <span th:text="${project.owner.fullName}">Owner Name</span>
+                    </p>
+
+                    <span class="skill-badge" th:text="${project.status}">OPEN</span>
+                </a>
+            </div>
+        </div>
+
+        <form method="get" th:action="@{/explore/projects}" class="search-bar">
             <input type="text"
                    name="keyword"
                    placeholder="Search by project title"
@@ -68,18 +100,6 @@
                        th:text="${project.description != null and project.description.length() > 180 ? #strings.substring(project.description, 0, 180) + '...' : project.description}">
                         Project description
                     </p>
-
-                    <div class="explore-meta">
-                        <span>
-                            <i class="fa-regular fa-user"></i>
-                            <span th:text="${project.owner.fullName}">Owner Name</span>
-                        </span>
-
-                        <span th:if="${project.createdAt != null}">
-                            <i class="fa-regular fa-clock"></i>
-                            <span th:text="${#temporals.format(project.createdAt, 'dd MMM yyyy')}">11 Apr 2026</span>
-                        </span>
-                    </div>
 
                     <div class="explore-actions">
                         <a th:href="@{/projects/{id}(id=${project.id})}" class="btn btn-primary">View Project</a>

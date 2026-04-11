@@ -14,4 +14,6 @@ public interface ProjectRequiredSkillRepository extends JpaRepository<ProjectReq
     List<ProjectRequiredSkill> findByProject(Project project);
 
     void deleteByProject(Project project);
+
+    List<ProjectRequiredSkill> findAll();
 }

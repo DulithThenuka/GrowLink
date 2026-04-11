@@ -1,5 +1,6 @@
 package com.example.GrowLink.service;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +32,7 @@ public class ProjectService {
     private final ProjectMemberRepository projectMemberRepository;
     private final ProjectRequiredSkillRepository projectRequiredSkillRepository;
     private final UserService userService;
+    private final SkillService skillService;
     private final NotificationService notificationService;
 
     public ProjectService(ProjectRepository projectRepository,
@@ -38,12 +40,14 @@ public class ProjectService {
                           ProjectMemberRepository projectMemberRepository,
                           ProjectRequiredSkillRepository projectRequiredSkillRepository,
                           UserService userService,
+                          SkillService skillService,
                           NotificationService notificationService) {
         this.projectRepository = projectRepository;
         this.projectJoinRequestRepository = projectJoinRequestRepository;
         this.projectMemberRepository = projectMemberRepository;
         this.projectRequiredSkillRepository = projectRequiredSkillRepository;
         this.userService = userService;
+        this.skillService = skillService;
         this.notificationService = notificationService;
     }
 
@@ -142,6 +146,59 @@ public class ProjectService {
         }
 
         return projectRepository.findAll();
+    }
+
+    public List<Project> getRecommendedProjects(String email) {
+        User user = userService.getUserByEmail(email);
+
+        Set<String> userSkillNames = new LinkedHashSet<>();
+
+        skillService.getTeachSkillsByUserEmail(email).forEach(item -> {
+            if (item.getSkill() != null && item.getSkill().getName() != null) {
+                userSkillNames.add(item.getSkill().getName().trim().toLowerCase());
+            }
+        });
+
+        skillService.getLearnSkillsByUserEmail(email).forEach(item -> {
+            if (item.getSkill() != null && item.getSkill().getName() != null) {
+                userSkillNames.add(item.getSkill().getName().trim().toLowerCase());
+            }
+        });
+
+        List<Project> allProjects = projectRepository.findAll();
+        List<Project> recommendedProjects = new ArrayList<>();
+
+        for (Project project : allProjects) {
+            if (project.getOwner() != null && project.getOwner().getId().equals(user.getId())) {
+                continue;
+            }
+
+            if (project.getStatus() != ProjectStatus.OPEN) {
+                continue;
+            }
+
+            if (projectMemberRepository.findByProjectAndUser(project, user).isPresent()) {
+                continue;
+            }
+
+            List<ProjectRequiredSkill> requiredSkills = projectRequiredSkillRepository.findByProject(project);
+
+            boolean matches = false;
+
+            for (ProjectRequiredSkill requiredSkill : requiredSkills) {
+                if (requiredSkill.getSkillName() != null &&
+                    userSkillNames.contains(requiredSkill.getSkillName().trim().toLowerCase())) {
+                    matches = true;
+                    break;
+                }
+            }
+
+            if (matches) {
+                recommendedProjects.add(project);
+            }
+        }
+
+        return recommendedProjects;
     }
 
     @Transactional
