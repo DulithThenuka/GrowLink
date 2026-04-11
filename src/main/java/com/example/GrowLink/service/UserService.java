@@ -100,6 +100,18 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public List<User> searchUsers(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return userRepository.findAll();
+        }
+
+        String cleanedKeyword = keyword.trim();
+        return userRepository.findByFullNameContainingIgnoreCaseOrHeadlineContainingIgnoreCase(
+                cleanedKeyword,
+                cleanedKeyword
+        );
+    }
+
     public long getTotalUsers() {
         return userRepository.count();
     }
@@ -121,5 +133,4 @@ public class UserService {
         user.setEnabled(true);
         userRepository.save(user);
     }
-    
 }

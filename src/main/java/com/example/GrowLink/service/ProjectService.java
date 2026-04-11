@@ -92,23 +92,53 @@ public class ProjectService {
         return projectMemberRepository.findByProjectAndUser(project, user).isPresent();
     }
 
-    public List<Project> searchProjects(String keyword, String category) {
+    public List<Project> searchProjects(String keyword, String category, ProjectStatus status) {
         boolean hasKeyword = keyword != null && !keyword.isBlank();
         boolean hasCategory = category != null && !category.isBlank();
+        boolean hasStatus = status != null;
+
+        String cleanedKeyword = hasKeyword ? keyword.trim() : null;
+        String cleanedCategory = hasCategory ? category.trim() : null;
+
+        if (hasKeyword && hasCategory && hasStatus) {
+            return projectRepository.findByTitleContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndStatus(
+                    cleanedKeyword,
+                    cleanedCategory,
+                    status
+            );
+        }
 
         if (hasKeyword && hasCategory) {
             return projectRepository.findByTitleContainingIgnoreCaseAndCategoryContainingIgnoreCase(
-                    keyword.trim(),
-                    category.trim()
+                    cleanedKeyword,
+                    cleanedCategory
+            );
+        }
+
+        if (hasKeyword && hasStatus) {
+            return projectRepository.findByTitleContainingIgnoreCaseAndStatus(
+                    cleanedKeyword,
+                    status
+            );
+        }
+
+        if (hasCategory && hasStatus) {
+            return projectRepository.findByCategoryContainingIgnoreCaseAndStatus(
+                    cleanedCategory,
+                    status
             );
         }
 
         if (hasKeyword) {
-            return projectRepository.findByTitleContainingIgnoreCase(keyword.trim());
+            return projectRepository.findByTitleContainingIgnoreCase(cleanedKeyword);
         }
 
         if (hasCategory) {
-            return projectRepository.findByCategoryContainingIgnoreCase(category.trim());
+            return projectRepository.findByCategoryContainingIgnoreCase(cleanedCategory);
+        }
+
+        if (hasStatus) {
+            return projectRepository.findByStatus(status);
         }
 
         return projectRepository.findAll();

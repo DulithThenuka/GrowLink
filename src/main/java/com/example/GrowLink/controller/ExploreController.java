@@ -1,69 +1,56 @@
 package com.example.GrowLink.controller;
 
-import java.util.List;
+import java.security.Principal;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import com.example.GrowLink.entity.Project;
-import com.example.GrowLink.entity.User;
-import com.example.GrowLink.repository.ProjectRepository;
-import com.example.GrowLink.repository.UserRepository;
+import com.example.GrowLink.enums.ProjectStatus;
+import com.example.GrowLink.service.ProjectService;
+import com.example.GrowLink.service.UserService;
 
 @Controller
 @RequestMapping("/explore")
 public class ExploreController {
 
-    private final UserRepository userRepository;
-    private final ProjectRepository projectRepository;
+    private final UserService userService;
+    private final ProjectService projectService;
 
-    public ExploreController(UserRepository userRepository,
-                             ProjectRepository projectRepository) {
-        this.userRepository = userRepository;
-        this.projectRepository = projectRepository;
+    public ExploreController(UserService userService,
+                             ProjectService projectService) {
+        this.userService = userService;
+        this.projectService = projectService;
     }
 
-    // ================= USERS =================
     @GetMapping("/users")
-    public String exploreUsers(
-            @RequestParam(required = false) String keyword,
-            Model model
-    ) {
-        List<User> users;
+    public String exploreUsers(@RequestParam(required = false) String keyword,
+                               Model model,
+                               Principal principal) {
 
-        if (keyword != null && !keyword.isEmpty()) {
-            users = userRepository.findByFullNameContainingIgnoreCase(keyword);
-        } else {
-            users = userRepository.findAll();
-        }
-
-        model.addAttribute("users", users);
+        model.addAttribute("users", userService.searchUsers(keyword));
         model.addAttribute("keyword", keyword);
+
+        if (principal != null) {
+            model.addAttribute("currentUserEmail", principal.getName());
+        }
 
         return "explore/users";
     }
 
-    // ================= PROJECTS =================
     @GetMapping("/projects")
-    public String exploreProjects(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String category,
-            Model model
-    ) {
-        List<Project> projects;
+    public String exploreProjects(@RequestParam(required = false) String keyword,
+                                  @RequestParam(required = false) String category,
+                                  @RequestParam(required = false) ProjectStatus status,
+                                  Model model) {
 
-        if (keyword != null && !keyword.isEmpty()) {
-            projects = projectRepository.findByTitleContainingIgnoreCase(keyword);
-        } else if (category != null && !category.isEmpty()) {
-            projects = projectRepository.findByCategoryContainingIgnoreCase(category);
-        } else {
-            projects = projectRepository.findAll();
-        }
-
-        model.addAttribute("projects", projects);
+        model.addAttribute("projects", projectService.searchProjects(keyword, category, status));
         model.addAttribute("keyword", keyword);
         model.addAttribute("category", category);
+        model.addAttribute("status", status);
+        model.addAttribute("statuses", ProjectStatus.values());
 
         return "explore/projects";
     }

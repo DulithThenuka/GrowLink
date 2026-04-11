@@ -1,42 +1,97 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Explore Projects')}"></head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Explore Projects - GrowLink')}"></head>
+<link rel="stylesheet" th:href="@{/css/projects.css}">
 <body>
 
 <header th:replace="~{fragments/navbar :: navbar}"></header>
 
 <main class="projects-page">
-<div class="container">
+    <div class="container">
 
-    <h1>Explore Projects</h1>
+        <div class="projects-topbar">
+            <div>
+                <h1>Explore Projects</h1>
+                <p>Discover active ideas, find categories you like, and join teams that match your interest.</p>
+            </div>
 
-    <form method="get" th:action="@{/explore/projects}" class="search-bar">
-
-        <input type="text" name="keyword" placeholder="Search project..." th:value="${keyword}">
-
-        <input type="text" name="category" placeholder="Category..." th:value="${category}">
-
-        <button class="btn btn-primary">Search</button>
-    </form>
-
-    <div class="projects-grid">
-
-        <div th:each="p : ${projects}" class="project-item">
-            <h3 th:text="${p.title}"></h3>
-
-            <p th:text="${p.category}"></p>
-
-            <p th:text="${p.owner.fullName}"></p>
-
-            <a th:href="@{/projects/{id}(id=${p.id})}" class="btn btn-secondary">
-                View Project
-            </a>
+            <a th:href="@{/projects}" class="btn btn-secondary">My Projects</a>
         </div>
 
-    </div>
+        <form method="get" th:action="@{/explore/projects}" class="search-bar">
 
-</div>
+            <input type="text"
+                   name="keyword"
+                   placeholder="Search by project title"
+                   th:value="${keyword}">
+
+            <input type="text"
+                   name="category"
+                   placeholder="Filter by category"
+                   th:value="${category}">
+
+            <select name="status" class="status-select">
+                <option value="">All statuses</option>
+                <option th:each="item : ${statuses}"
+                        th:value="${item}"
+                        th:text="${item}"
+                        th:selected="${status != null and item == status}">
+                    OPEN
+                </option>
+            </select>
+
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        <section class="skills-card all-projects-section">
+            <h2>Available Projects</h2>
+
+            <div th:if="${#lists.isEmpty(projects)}" class="empty-state">
+                No projects matched your search. Try a different keyword, category, or status.
+            </div>
+
+            <div class="projects-grid">
+                <div th:each="project : ${projects}" class="project-item explore-card">
+                    <div class="explore-card-top">
+                        <div>
+                            <h3 th:text="${project.title}">Project Title</h3>
+                            <p class="skill-category"
+                               th:text="${project.category != null and !#strings.isEmpty(project.category) ? project.category : 'No category'}">
+                                Category
+                            </p>
+                        </div>
+
+                        <span class="skill-badge" th:text="${project.status}">OPEN</span>
+                    </div>
+
+                    <p class="explore-description"
+                       th:text="${project.description != null and project.description.length() > 180 ? #strings.substring(project.description, 0, 180) + '...' : project.description}">
+                        Project description
+                    </p>
+
+                    <div class="explore-meta">
+                        <span>
+                            <i class="fa-regular fa-user"></i>
+                            <span th:text="${project.owner.fullName}">Owner Name</span>
+                        </span>
+
+                        <span th:if="${project.createdAt != null}">
+                            <i class="fa-regular fa-clock"></i>
+                            <span th:text="${#temporals.format(project.createdAt, 'dd MMM yyyy')}">11 Apr 2026</span>
+                        </span>
+                    </div>
+
+                    <div class="explore-actions">
+                        <a th:href="@{/projects/{id}(id=${project.id})}" class="btn btn-primary">View Project</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
 </main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 </body>
 </html>

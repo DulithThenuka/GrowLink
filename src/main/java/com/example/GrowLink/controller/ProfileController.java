@@ -88,6 +88,6 @@ public class ProfileController {
         model.addAttribute("collaborationCompleted", collaborationCompleted);
         model.addAttribute("canReview", canReview);
 
-        return "profile/view";
+        return "profile/view-profile";
     }
 }
