@@ -1,6 +1,9 @@
 package com.example.GrowLink.service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -10,6 +13,7 @@ import com.example.GrowLink.dto.ProjectDto;
 import com.example.GrowLink.entity.Project;
 import com.example.GrowLink.entity.ProjectJoinRequest;
 import com.example.GrowLink.entity.ProjectMember;
+import com.example.GrowLink.entity.ProjectRequiredSkill;
 import com.example.GrowLink.entity.User;
 import com.example.GrowLink.enums.NotificationType;
 import com.example.GrowLink.enums.ProjectRole;
@@ -18,6 +22,7 @@ import com.example.GrowLink.enums.RequestStatus;
 import com.example.GrowLink.repository.ProjectJoinRequestRepository;
 import com.example.GrowLink.repository.ProjectMemberRepository;
 import com.example.GrowLink.repository.ProjectRepository;
+import com.example.GrowLink.repository.ProjectRequiredSkillRepository;
 
 @Service
 public class ProjectService {
@@ -25,17 +30,20 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final ProjectJoinRequestRepository projectJoinRequestRepository;
     private final ProjectMemberRepository projectMemberRepository;
+    private final ProjectRequiredSkillRepository projectRequiredSkillRepository;
     private final UserService userService;
     private final NotificationService notificationService;
 
     public ProjectService(ProjectRepository projectRepository,
                           ProjectJoinRequestRepository projectJoinRequestRepository,
                           ProjectMemberRepository projectMemberRepository,
+                          ProjectRequiredSkillRepository projectRequiredSkillRepository,
                           UserService userService,
                           NotificationService notificationService) {
         this.projectRepository = projectRepository;
         this.projectJoinRequestRepository = projectJoinRequestRepository;
         this.projectMemberRepository = projectMemberRepository;
+        this.projectRequiredSkillRepository = projectRequiredSkillRepository;
         this.userService = userService;
         this.notificationService = notificationService;
     }
@@ -62,6 +70,11 @@ public class ProjectService {
     public List<ProjectMember> getProjectsJoinedByUserEmail(String email) {
         User user = userService.getUserByEmail(email);
         return projectMemberRepository.findByUser(user);
+    }
+
+    public List<ProjectRequiredSkill> getRequiredSkillsByProjectId(Long projectId) {
+        Project project = getProjectById(projectId);
+        return projectRequiredSkillRepository.findByProject(project);
     }
 
     public Project getProjectById(Long id) {
@@ -99,6 +112,22 @@ public class ProjectService {
         ownerMember.setRole(ProjectRole.OWNER);
 
         projectMemberRepository.save(ownerMember);
+
+        saveRequiredSkills(project, dto.getRequiredSkillsText());
+    }
+
+    @Transactional
+    public String updateProjectStatus(String ownerEmail, Long projectId, ProjectStatus status) {
+        Project project = getProjectById(projectId);
+
+        if (!project.getOwner().getEmail().equals(ownerEmail)) {
+            throw new AccessDeniedException("You are not allowed to update this project.");
+        }
+
+        project.setStatus(status);
+        projectRepository.save(project);
+
+        return "Project status updated successfully.";
     }
 
     @Transactional
@@ -200,5 +229,28 @@ public class ProjectService {
         );
 
         return "Join request rejected.";
+    }
+
+    private void saveRequiredSkills(Project project, String requiredSkillsText) {
+        if (requiredSkillsText == null || requiredSkillsText.isBlank()) {
+            return;
+        }
+
+        Set<String> uniqueSkills = new LinkedHashSet<>();
+        String[] parts = requiredSkillsText.split(",");
+
+        for (String part : parts) {
+            String skill = part.trim();
+            if (!skill.isEmpty()) {
+                uniqueSkills.add(skill);
+            }
+        }
+
+        for (String skillName : uniqueSkills) {
+            ProjectRequiredSkill requiredSkill = new ProjectRequiredSkill();
+            requiredSkill.setProject(project);
+            requiredSkill.setSkillName(skillName);
+            projectRequiredSkillRepository.save(requiredSkill);
+        }
     }
 }

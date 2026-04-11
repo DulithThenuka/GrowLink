@@ -32,10 +32,44 @@
                 <p th:text="${project.description}">Project description</p>
             </div>
 
+            <div class="project-description-box">
+                <h3>Required Skills</h3>
+
+                <div th:if="${#lists.isEmpty(requiredSkills)}" class="empty-state">
+                    No required skills added yet.
+                </div>
+
+                <div th:if="${!#lists.isEmpty(requiredSkills)}" class="skills-tags">
+                    <span th:each="skill : ${requiredSkills}"
+                          class="skill-badge"
+                          th:text="${skill.skillName}">
+                        Java
+                    </span>
+                </div>
+            </div>
+
+            <div th:if="${isOwner}" class="project-description-box">
+                <h3>Update Project Status</h3>
+
+                <form th:action="@{/projects/{projectId}/status(projectId=${project.id})}" method="post" class="project-status-form">
+                    <select name="status" class="status-select">
+                        <option th:each="status : ${statuses}"
+                                th:value="${status}"
+                                th:text="${status}"
+                                th:selected="${status == project.status}">
+                            OPEN
+                        </option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </form>
+            </div>
+
             <div class="project-main-actions">
                 <a th:href="@{/projects}" class="btn btn-secondary">Back to Projects</a>
 
-                <form th:if="${!isOwner and !isMember}" th:action="@{/projects/{projectId}/join(projectId=${project.id})}" method="post">
+                <form th:if="${!isOwner and !isMember and project.status.name() == 'OPEN'}"
+                      th:action="@{/projects/{projectId}/join(projectId=${project.id})}"
+                      method="post">
                     <button type="submit" class="btn btn-primary">Request to Join</button>
                 </form>
             </div>

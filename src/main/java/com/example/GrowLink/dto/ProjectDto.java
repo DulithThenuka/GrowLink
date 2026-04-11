@@ -16,6 +16,9 @@ public class ProjectDto {
     @Size(max = 100, message = "Category must not exceed 100 characters")
     private String category;
 
+    @Size(max = 500, message = "Required skills must not exceed 500 characters")
+    private String requiredSkillsText;
+
     public ProjectDto() {
     }
 
@@ -31,6 +34,10 @@ public class ProjectDto {
         return category;
     }
 
+    public String getRequiredSkillsText() {
+        return requiredSkillsText;
+    }
+
     public void setTitle(String title) {
         this.title = title;
     }
@@ -41,5 +48,9 @@ public class ProjectDto {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public void setRequiredSkillsText(String requiredSkillsText) {
+        this.requiredSkillsText = requiredSkillsText;
     }
 }

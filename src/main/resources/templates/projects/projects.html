@@ -1,20 +1,93 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head><title>Projects</title></head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Projects - GrowLink')}"></head>
 <body>
 
-<h1>Projects</h1>
+<header th:replace="~{fragments/navbar :: navbar}"></header>
 
-<a th:href="@{/projects/create}">Create Project</a>
+<main class="projects-page">
+    <div class="container">
+        <div class="projects-topbar">
+            <div>
+                <h1>Projects</h1>
+                <p>Discover projects, manage your own ideas, and join teams.</p>
+            </div>
 
-<div th:each="p : ${projects}">
-    <h3 th:text="${p.title}"></h3>
-    <p th:text="${p.description}"></p>
+            <a th:href="@{/projects/create}" class="btn btn-primary">Create Project</a>
+        </div>
 
-    <form th:action="@{/projects/join/{id}(id=${p.id})}" method="post">
-        <button>Join</button>
-    </form>
-</div>
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+        <div class="projects-grid">
+
+            <section class="skills-card">
+                <h2>My Projects</h2>
+
+                <div th:if="${#lists.isEmpty(myProjects)}" class="empty-state">
+                    You have not created any projects yet.
+                </div>
+
+                <a th:each="project : ${myProjects}"
+                   th:href="@{/projects/{id}(id=${project.id})}"
+                   class="project-item project-link-card">
+                    <h3 th:text="${project.title}">Project Title</h3>
+                    <p class="skill-category"
+                       th:text="${project.category != null and !#strings.isEmpty(project.category) ? project.category : 'No category'}">
+                        Category
+                    </p>
+                    <p th:text="${project.description}">Description</p>
+                    <span class="skill-badge" th:text="${project.status}">OPEN</span>
+                </a>
+            </section>
+
+            <section class="skills-card">
+                <h2>Joined Projects</h2>
+
+                <div th:if="${#lists.isEmpty(joinedProjects)}" class="empty-state">
+                    You have not joined any projects yet.
+                </div>
+
+                <a th:each="membership : ${joinedProjects}"
+                   th:href="@{/projects/{id}(id=${membership.project.id})}"
+                   class="project-item project-link-card">
+                    <h3 th:text="${membership.project.title}">Project Title</h3>
+                    <p class="skill-category" th:text="${membership.role}">MEMBER</p>
+                    <p th:text="${membership.project.description}">Description</p>
+                    <span class="skill-badge" th:text="${membership.project.status}">OPEN</span>
+                </a>
+            </section>
+
+        </div>
+
+        <section class="skills-card all-projects-section">
+            <h2>All Projects</h2>
+
+            <div th:if="${#lists.isEmpty(allProjects)}" class="empty-state">
+                No projects available right now.
+            </div>
+
+            <div class="projects-grid">
+                <a th:each="project : ${allProjects}"
+                   th:href="@{/projects/{id}(id=${project.id})}"
+                   class="project-item project-link-card">
+                    <h3 th:text="${project.title}">Project Title</h3>
+                    <p class="skill-category"
+                       th:text="${project.category != null and !#strings.isEmpty(project.category) ? project.category : 'No category'}">
+                        Category
+                    </p>
+                    <p th:text="${project.description}">Description</p>
+                    <p>
+                        Owner:
+                        <span th:text="${project.owner.fullName}">Owner Name</span>
+                    </p>
+                    <span class="skill-badge" th:text="${project.status}">OPEN</span>
+                </a>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 </body>
 </html>

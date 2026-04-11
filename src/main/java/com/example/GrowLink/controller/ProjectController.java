@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.GrowLink.dto.ProjectDto;
 import com.example.GrowLink.entity.Project;
+import com.example.GrowLink.enums.ProjectStatus;
 import com.example.GrowLink.service.ProjectService;
 
 import jakarta.validation.Valid;
@@ -79,8 +80,10 @@ public class ProjectController {
         model.addAttribute("project", project);
         model.addAttribute("members", projectService.getMembersByProjectId(projectId));
         model.addAttribute("joinRequests", projectService.getJoinRequestsByProjectId(projectId));
+        model.addAttribute("requiredSkills", projectService.getRequiredSkillsByProjectId(projectId));
         model.addAttribute("isOwner", projectService.isOwner(principal.getName(), projectId));
         model.addAttribute("isMember", projectService.isMember(principal.getName(), projectId));
+        model.addAttribute("statuses", ProjectStatus.values());
         model.addAttribute("message", message);
 
         return "projects/project-details";
@@ -89,6 +92,14 @@ public class ProjectController {
     @PostMapping("/{projectId}/join")
     public String joinProject(@PathVariable Long projectId, Principal principal) {
         String message = projectService.sendJoinRequest(principal.getName(), projectId);
+        return "redirect:/projects/" + projectId + "?message=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
+    }
+
+    @PostMapping("/{projectId}/status")
+    public String updateProjectStatus(@PathVariable Long projectId,
+                                      @RequestParam("status") ProjectStatus status,
+                                      Principal principal) {
+        String message = projectService.updateProjectStatus(principal.getName(), projectId, status);
         return "redirect:/projects/" + projectId + "?message=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
     }
 

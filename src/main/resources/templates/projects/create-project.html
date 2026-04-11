@@ -25,6 +25,15 @@
             </div>
 
             <div class="form-group">
+                <label>Required Skills</label>
+                <input type="text"
+                       th:field="*{requiredSkillsText}"
+                       placeholder="Example: Java, Spring Boot, UI Design, MySQL">
+                <small class="field-error" th:if="${#fields.hasErrors('requiredSkillsText')}" th:errors="*{requiredSkillsText}"></small>
+                <small class="form-hint">Separate skills with commas.</small>
+            </div>
+
+            <div class="form-group">
                 <label>Description</label>
                 <textarea th:field="*{description}" rows="8" placeholder="Describe your project idea, goal, and what you want to build."></textarea>
                 <small class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
