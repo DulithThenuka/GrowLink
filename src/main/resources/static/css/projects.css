@@ -1,50 +1,52 @@
-.project-link-card {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-    transition: 0.2s ease;
+.projects-page {
+    padding-top: 20px;
+}
+
+.projects-topbar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.project-item {
+    padding: 15px;
+    border-radius: 12px;
+    background: #f9fafb;
 }
 
 .project-link-card:hover {
     transform: translateY(-3px);
 }
 
-.projects-topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-}
-
-.all-projects-section {
-    margin-top: 24px;
-}
-
-.project-status-form {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.status-select {
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid #d9d9d9;
-    min-width: 180px;
+.project-description-box {
+    margin-top: 20px;
 }
 
 .skills-tags {
     display: flex;
+    gap: 10px;
     flex-wrap: wrap;
+}
+
+.skill-badge {
+    background: #e0e7ff;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.project-status-form {
+    display: flex;
     gap: 10px;
 }
 
-.form-hint {
-    display: block;
-    margin-top: 6px;
-    color: #777;
-    font-size: 13px;
+.status-select {
+    padding: 8px;
+    border-radius: 8px;
 }

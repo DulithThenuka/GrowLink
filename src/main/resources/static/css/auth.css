@@ -1,0 +1,27 @@
+.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+}
+
+.auth-card {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    width: 400px;
+}
+
+.auth-form input,
+.auth-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.auth-btn {
+    width: 100%;
+    margin-top: 15px;
+}
