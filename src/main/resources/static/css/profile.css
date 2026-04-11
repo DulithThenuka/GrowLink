@@ -1,10 +1,83 @@
-.profile-header {
-    display: flex;
-    gap: 20px;
+.profile-page {
+    padding: 48px 0;
 }
 
-.profile-img {
+.profile-card {
+    margin-bottom: 24px;
+}
+
+.profile-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.profile-identity {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.profile-avatar-large {
     width: 120px;
     height: 120px;
     border-radius: 50%;
+    background: linear-gradient(135deg, #5b8cff, #7c5cff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-size: 42px;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 16px 40px rgba(91, 140, 255, 0.25);
+}
+
+.profile-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-info h1 {
+    margin-bottom: 8px;
+    font-size: 2rem;
+}
+
+.profile-headline,
+.profile-location,
+.profile-email {
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.profile-bio-box {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+}
+
+.profile-bio-box h3 {
+    margin-bottom: 10px;
+}
+
+.profile-skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 900px) {
+    .profile-skills-grid {
+        grid-template-columns: 1fr;
+    }
 }

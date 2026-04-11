@@ -1,0 +1,16 @@
+.admin-page {
+    padding: 48px 0;
+}
+
+.admin-grid {
+    display: grid;
+    gap: 24px;
+}
+
+.admin-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+}
