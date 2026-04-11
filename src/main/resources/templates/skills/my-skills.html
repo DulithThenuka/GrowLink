@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('My Skills - GrowLink')}"></head>
+<link rel="stylesheet" th:href="@{/css/skills.css}">
 <body>
 
 <header th:replace="~{fragments/navbar :: navbar}"></header>
@@ -79,7 +80,7 @@
                             <option value="">Select target level</option>
                             <option th:each="level : ${skillLevels}" th:value="${level}" th:text="${level}"></option>
                         </select>
-                        <small class="field-error" th:if="${#fields.hasErrors('learnSkillDto.targetLevel')}" th:errors="*{targetLevel}"></small>
+                        <small class="field-error" th:if="${#fields.hasErrors('learnSkillDto.targetLevel')}" th:errors="*{level}"></small>
                     </div>
 
                     <div class="form-group">

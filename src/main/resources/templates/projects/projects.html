@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Projects - GrowLink')}"></head>
+<link rel="stylesheet" th:href="@{/css/projects.css}">
 <body>
 
 <header th:replace="~{fragments/navbar :: navbar}"></header>
@@ -17,6 +18,22 @@
         </div>
 
         <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+        <form method="get" th:action="@{/projects}" class="search-bar">
+            <input type="text"
+                   name="keyword"
+                   th:value="${keyword}"
+                   placeholder="Search projects by title">
+
+            <input type="text"
+                   name="category"
+                   th:value="${category}"
+                   placeholder="Filter by category">
+
+            <button type="submit" class="btn btn-primary">Search</button>
+
+            <a th:href="@{/projects}" class="btn btn-secondary">Clear</a>
+        </form>
 
         <div class="projects-grid">
 
@@ -63,7 +80,7 @@
             <h2>All Projects</h2>
 
             <div th:if="${#lists.isEmpty(allProjects)}" class="empty-state">
-                No projects available right now.
+                No projects found for your search.
             </div>
 
             <div class="projects-grid">

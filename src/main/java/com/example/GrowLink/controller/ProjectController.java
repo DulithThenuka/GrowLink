@@ -29,12 +29,16 @@ public class ProjectController {
     @GetMapping
     public String showProjectsPage(Model model,
                                    Principal principal,
-                                   @RequestParam(value = "message", required = false) String message) {
+                                   @RequestParam(value = "message", required = false) String message,
+                                   @RequestParam(value = "keyword", required = false) String keyword,
+                                   @RequestParam(value = "category", required = false) String category) {
 
-        model.addAttribute("allProjects", projectService.getAllProjects());
+        model.addAttribute("allProjects", projectService.searchProjects(keyword, category));
         model.addAttribute("myProjects", projectService.getProjectsByOwnerEmail(principal.getName()));
         model.addAttribute("joinedProjects", projectService.getProjectsJoinedByUserEmail(principal.getName()));
         model.addAttribute("message", message);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("category", category);
 
         return "projects/projects";
     }

@@ -1,6 +1,5 @@
 package com.example.GrowLink.service;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -91,6 +90,28 @@ public class ProjectService {
         User user = userService.getUserByEmail(email);
         Project project = getProjectById(projectId);
         return projectMemberRepository.findByProjectAndUser(project, user).isPresent();
+    }
+
+    public List<Project> searchProjects(String keyword, String category) {
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+        boolean hasCategory = category != null && !category.isBlank();
+
+        if (hasKeyword && hasCategory) {
+            return projectRepository.findByTitleContainingIgnoreCaseAndCategoryContainingIgnoreCase(
+                    keyword.trim(),
+                    category.trim()
+            );
+        }
+
+        if (hasKeyword) {
+            return projectRepository.findByTitleContainingIgnoreCase(keyword.trim());
+        }
+
+        if (hasCategory) {
+            return projectRepository.findByCategoryContainingIgnoreCase(category.trim());
+        }
+
+        return projectRepository.findAll();
     }
 
     @Transactional

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Project Details - GrowLink')}"></head>
+<link rel="stylesheet" th:href="@{/css/projects.css}">
 <body>
 
 <header th:replace="~{fragments/navbar :: navbar}"></header>
@@ -103,7 +104,7 @@
                     <p th:text="${request.user.email}">user@email.com</p>
                     <p class="skill-category" th:text="${request.status}">PENDING</p>
 
-                    <div th:if="${request.status.name() == 'PENDING'}" class="connection-actions">
+                    <div th:if="${request.status.name() == 'PENDING'}" class="project-main-actions">
                         <form th:action="@{/projects/requests/{requestId}/accept(requestId=${request.id})}" method="post">
                             <input type="hidden" name="projectId" th:value="${project.id}">
                             <button type="submit" class="btn btn-primary">Accept</button>
