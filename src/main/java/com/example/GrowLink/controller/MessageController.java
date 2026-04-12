@@ -4,6 +4,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,14 +32,20 @@ public class MessageController {
 
         String email = principal.getName();
         List<Conversation> conversations = messageService.getUserConversations(email);
+        Map<Long, String> previewMap = messageService.getConversationPreviewMap(email);
+        Map<Long, Long> unreadCountMap = messageService.getConversationUnreadCountMap(email);
 
         model.addAttribute("conversations", conversations);
+        model.addAttribute("previewMap", previewMap);
+        model.addAttribute("unreadCountMap", unreadCountMap);
         model.addAttribute("message", message);
 
         if (conversationId != null) {
             if (!messageService.isUserInConversation(conversationId, email)) {
                 return "redirect:/messages?message=" + URLEncoder.encode("You cannot open that conversation.", StandardCharsets.UTF_8);
             }
+
+            messageService.markConversationAsRead(conversationId, email);
 
             Conversation selectedConversation = messageService.getConversationById(conversationId);
             List<Message> messages = messageService.getMessagesByConversation(conversationId);

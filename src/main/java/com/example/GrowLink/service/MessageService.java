@@ -1,7 +1,9 @@
 package com.example.GrowLink.service;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -110,6 +112,7 @@ public class MessageService {
         message.setSender(sender);
         message.setContent(content.trim());
         message.setCreatedAt(LocalDateTime.now());
+        message.setIsRead(false);
 
         messageRepository.save(message);
 
@@ -126,5 +129,70 @@ public class MessageService {
                 sender.getFullName() + " sent you a message.",
                 NotificationType.MESSAGE
         );
+    }
+
+    @Transactional
+    public void markConversationAsRead(Long conversationId, String currentUserEmail) {
+        Conversation conversation = getConversationById(conversationId);
+        User currentUser = userService.getUserByEmail(currentUserEmail);
+
+        List<Message> unreadMessages = messageRepository.findByConversationAndSenderNotAndIsReadFalse(conversation, currentUser);
+
+        for (Message message : unreadMessages) {
+            message.setIsRead(true);
+        }
+
+        if (!unreadMessages.isEmpty()) {
+            messageRepository.saveAll(unreadMessages);
+        }
+    }
+
+    public Optional<Message> getLatestMessage(Conversation conversation) {
+        return messageRepository.findTopByConversationOrderByCreatedAtDesc(conversation);
+    }
+
+    public long getUnreadCountForConversation(Conversation conversation, String currentUserEmail) {
+        User currentUser = userService.getUserByEmail(currentUserEmail);
+        return messageRepository.countByConversationAndSenderNotAndIsReadFalse(conversation, currentUser);
+    }
+
+    public long getTotalUnreadMessageCount(String currentUserEmail) {
+        List<Conversation> conversations = getUserConversations(currentUserEmail);
+        long total = 0;
+
+        for (Conversation conversation : conversations) {
+            total += getUnreadCountForConversation(conversation, currentUserEmail);
+        }
+
+        return total;
+    }
+
+    public Map<Long, String> getConversationPreviewMap(String currentUserEmail) {
+        Map<Long, String> previewMap = new LinkedHashMap<>();
+        List<Conversation> conversations = getUserConversations(currentUserEmail);
+
+        for (Conversation conversation : conversations) {
+            Optional<Message> latestMessage = getLatestMessage(conversation);
+            previewMap.put(
+                    conversation.getId(),
+                    latestMessage.map(Message::getContent).orElse("No messages yet.")
+            );
+        }
+
+        return previewMap;
+    }
+
+    public Map<Long, Long> getConversationUnreadCountMap(String currentUserEmail) {
+        Map<Long, Long> unreadCountMap = new LinkedHashMap<>();
+        List<Conversation> conversations = getUserConversations(currentUserEmail);
+
+        for (Conversation conversation : conversations) {
+            unreadCountMap.put(
+                    conversation.getId(),
+                    getUnreadCountForConversation(conversation, currentUserEmail)
+            );
+        }
+
+        return unreadCountMap;
     }
 }

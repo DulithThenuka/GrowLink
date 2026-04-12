@@ -11,60 +11,101 @@
 
         <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
 
-        <div class="projects-grid">
-            <section class="skills-card">
-                <h2>Conversations</h2>
+        <div class="messages-layout">
+
+            <section class="skills-card messages-sidebar">
+                <div class="projects-topbar">
+                    <div>
+                        <h2>Conversations</h2>
+                        <p>Your recent chats and unread messages.</p>
+                    </div>
+                </div>
 
                 <div th:if="${#lists.isEmpty(conversations)}" class="empty-state">
                     No conversations yet. Start messaging people from Explore Users or their profile page.
                 </div>
 
-                <a th:each="conversation : ${conversations}"
-                   th:href="@{/messages(conversationId=${conversation.id})}"
-                   class="project-item project-link-card">
-                    <h3 th:text="${otherUser != null and selectedConversation != null and selectedConversation.id == conversation.id ? otherUser.fullName : (conversation.user1.email == #authentication.name ? conversation.user2.fullName : conversation.user1.fullName)}">
-                        User Name
-                    </h3>
+                <div class="conversation-list">
+                    <a th:each="conversation : ${conversations}"
+                       th:href="@{/messages(conversationId=${conversation.id})}"
+                       class="conversation-card"
+                       th:classappend="${selectedConversation != null and selectedConversation.id == conversation.id} ? ' active' : ''">
 
-                    <p th:text="${conversation.user1.email == #authentication.name ? conversation.user2.email : conversation.user1.email}">
-                        email@example.com
-                    </p>
-                </a>
+                        <div class="conversation-top">
+                            <h3 th:text="${conversation.user1.email == #authentication.name ? conversation.user2.fullName : conversation.user1.fullName}">
+                                User Name
+                            </h3>
+
+                            <span th:if="${unreadCountMap[conversation.id] != null and unreadCountMap[conversation.id] > 0}"
+                                  class="conversation-unread-badge"
+                                  th:text="${unreadCountMap[conversation.id]}">
+                                1
+                            </span>
+                        </div>
+
+                        <p class="conversation-email"
+                           th:text="${conversation.user1.email == #authentication.name ? conversation.user2.email : conversation.user1.email}">
+                            email@example.com
+                        </p>
+
+                        <p class="conversation-preview"
+                           th:text="${previewMap[conversation.id] != null and previewMap[conversation.id].length() > 55 ? #strings.substring(previewMap[conversation.id], 0, 55) + '...' : previewMap[conversation.id]}">
+                            Latest message preview
+                        </p>
+                    </a>
+                </div>
             </section>
 
-            <section class="skills-card">
+            <section class="skills-card messages-chat-panel">
                 <div th:if="${selectedConversation == null}" class="empty-state">
                     Select a conversation to view messages.
                 </div>
 
-                <div th:if="${selectedConversation != null}">
-                    <h2 th:text="${otherUser.fullName}">Other User</h2>
-                    <p class="skill-category" th:text="${otherUser.email}">other@email.com</p>
+                <div th:if="${selectedConversation != null}" class="chat-panel-inner">
+                    <div class="chat-header">
+                        <div>
+                            <h2 th:text="${otherUser.fullName}">Other User</h2>
+                            <p class="skill-category" th:text="${otherUser.email}">other@email.com</p>
+                        </div>
 
-                    <div class="messages-box" style="display:grid; gap:12px; margin:20px 0;">
+                        <a th:href="@{/profile/{id}(id=${otherUser.id})}" class="btn btn-secondary">View Profile</a>
+                    </div>
+
+                    <div class="messages-box">
                         <div th:if="${#lists.isEmpty(messages)}" class="empty-state">
                             No messages yet. Say hello.
                         </div>
 
-                        <div th:each="msg : ${messages}" class="project-item">
-                            <h3 th:text="${msg.sender.fullName}">Sender Name</h3>
-                            <p th:text="${msg.content}">Message content</p>
-                            <small th:text="${#temporals.format(msg.createdAt, 'dd MMM yyyy - hh:mm a')}">11 Apr 2026 - 08:00 PM</small>
+                        <div th:each="msg : ${messages}"
+                             class="message-row"
+                             th:classappend="${msg.sender.email == #authentication.name} ? ' sent' : ' received'">
+
+                            <div class="message-bubble">
+                                <div class="message-meta">
+                                    <strong th:text="${msg.sender.fullName}">Sender Name</strong>
+                                    <small th:text="${#temporals.format(msg.createdAt, 'dd MMM yyyy - hh:mm a')}">
+                                        11 Apr 2026 - 08:00 PM
+                                    </small>
+                                </div>
+
+                                <p th:text="${msg.content}">Message content</p>
+                            </div>
                         </div>
                     </div>
 
-                    <form th:action="@{/messages/send}" method="post" class="auth-form">
+                    <form th:action="@{/messages/send}" method="post" class="message-form">
                         <input type="hidden" name="conversationId" th:value="${selectedConversation.id}">
 
-                        <div class="form-group">
-                            <label>Message</label>
-                            <textarea name="content" rows="4" placeholder="Write your message..." required></textarea>
-                        </div>
+                        <textarea name="content"
+                                  rows="3"
+                                  placeholder="Write your message..."
+                                  required></textarea>
 
                         <button type="submit" class="btn btn-primary">Send Message</button>
                     </form>
                 </div>
             </section>
+
         </div>
     </div>
 </main>
