@@ -10,6 +10,8 @@
 <main class="projects-page">
     <div class="container">
 
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
         <div th:if="${recommendedUsers != null and !#lists.isEmpty(recommendedUsers)}" class="skills-card all-projects-section">
             <div class="projects-topbar">
                 <div>
@@ -51,6 +53,24 @@
 
                     <div class="explore-actions">
                         <a th:href="@{/profile/{id}(id=${user.id})}" class="btn btn-primary">View Profile</a>
+
+                        <form th:if="${currentUserEmail != null and currentUserEmail != user.email and connectableMap[user.id]}"
+                              th:action="@{/connections/send}"
+                              method="post">
+                            <input type="hidden" name="receiverId" th:value="${user.id}">
+                            <input type="hidden" name="redirectTo" value="/explore/users">
+                            <button type="submit" class="btn btn-secondary">Connect</button>
+                        </form>
+
+                        <span th:if="${currentUserEmail != null and currentUserEmail != user.email and pendingMap[user.id]}"
+                              class="connection-status-badge">
+                            Pending
+                        </span>
+
+                        <span th:if="${currentUserEmail != null and currentUserEmail != user.email and !connectableMap[user.id] and !pendingMap[user.id]}"
+                              class="connection-status-badge connected">
+                            Connected
+                        </span>
                     </div>
                 </div>
             </div>
@@ -120,6 +140,24 @@
 
                     <div class="explore-actions">
                         <a th:href="@{/profile/{id}(id=${user.id})}" class="btn btn-primary">View Profile</a>
+
+                        <form th:if="${currentUserEmail != null and currentUserEmail != user.email and connectableMap[user.id]}"
+                              th:action="@{/connections/send}"
+                              method="post">
+                            <input type="hidden" name="receiverId" th:value="${user.id}">
+                            <input type="hidden" name="redirectTo" value="/explore/users">
+                            <button type="submit" class="btn btn-secondary">Connect</button>
+                        </form>
+
+                        <span th:if="${currentUserEmail != null and currentUserEmail != user.email and pendingMap[user.id]}"
+                              class="connection-status-badge">
+                            Pending
+                        </span>
+
+                        <span th:if="${currentUserEmail != null and currentUserEmail != user.email and !connectableMap[user.id] and !pendingMap[user.id]}"
+                              class="connection-status-badge connected">
+                            Connected
+                        </span>
                     </div>
                 </div>
             </div>

@@ -1,9 +1,9 @@
 package com.example.GrowLink.repository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.example.GrowLink.entity.ConnectionRequest;
@@ -17,9 +17,29 @@ public interface ConnectionRequestRepository extends JpaRepository<ConnectionReq
 
     List<ConnectionRequest> findByReceiver(User receiver);
 
-    List<ConnectionRequest> findBySenderOrReceiverAndStatus(User sender, User receiver, RequestStatus status);
+    boolean existsBySenderAndReceiverAndStatus(User sender, User receiver, RequestStatus status);
 
-    Optional<ConnectionRequest> findBySenderAndReceiver(User sender, User receiver);
+    @Query("""
+            SELECT CASE WHEN COUNT(cr) > 0 THEN true ELSE false END
+            FROM ConnectionRequest cr
+            WHERE (
+                (cr.sender.id = :userId1 AND cr.receiver.id = :userId2)
+                OR
+                (cr.sender.id = :userId2 AND cr.receiver.id = :userId1)
+            )
+            AND cr.status = :status
+            """)
+    boolean existsAcceptedConnection(Long userId1, Long userId2, RequestStatus status);
 
-    Optional<ConnectionRequest> findByIdAndReceiver(Long id, User receiver);
+    @Query("""
+            SELECT cr
+            FROM ConnectionRequest cr
+            WHERE (
+                cr.sender.id = :userId
+                OR
+                cr.receiver.id = :userId
+            )
+            AND cr.status = :status
+            """)
+    List<ConnectionRequest> findAcceptedConnections(Long userId, RequestStatus status);
 }

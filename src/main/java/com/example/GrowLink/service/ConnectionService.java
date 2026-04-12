@@ -17,78 +17,34 @@ import com.example.GrowLink.repository.UserRepository;
 public class ConnectionService {
 
     private final ConnectionRequestRepository connectionRequestRepository;
-    private final UserService userService;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
     public ConnectionService(ConnectionRequestRepository connectionRequestRepository,
-                             UserService userService,
                              UserRepository userRepository,
                              NotificationService notificationService) {
         this.connectionRequestRepository = connectionRequestRepository;
-        this.userService = userService;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
     }
 
-    public List<User> getOtherUsers(String currentEmail) {
-        User currentUser = userService.getUserByEmail(currentEmail);
-
-        return userRepository.findAll()
-                .stream()
-                .filter(user -> !user.getId().equals(currentUser.getId()))
-                .toList();
-    }
-
-    public List<ConnectionRequest> getSentRequests(String email) {
-        User user = userService.getUserByEmail(email);
-        return connectionRequestRepository.findBySender(user);
-    }
-
-    public List<ConnectionRequest> getReceivedRequests(String email) {
-        User user = userService.getUserByEmail(email);
-        return connectionRequestRepository.findByReceiver(user);
-    }
-
-    public List<User> getAcceptedConnections(String email) {
-        User currentUser = userService.getUserByEmail(email);
-
-        List<ConnectionRequest> acceptedRequests =
-                connectionRequestRepository.findBySenderOrReceiverAndStatus(
-                        currentUser,
-                        currentUser,
-                        RequestStatus.ACCEPTED
-                );
-
-        List<User> connectedUsers = new ArrayList<>();
-
-        for (ConnectionRequest request : acceptedRequests) {
-            if (request.getSender().getId().equals(currentUser.getId())) {
-                connectedUsers.add(request.getReceiver());
-            } else {
-                connectedUsers.add(request.getSender());
-            }
-        }
-
-        return connectedUsers;
-    }
-
     @Transactional
     public String sendConnectionRequest(String senderEmail, Long receiverId) {
-        User sender = userService.getUserByEmail(senderEmail);
-        User receiver = userRepository.findById(receiverId).orElse(null);
-
-        if (receiver == null) {
-            return "User not found.";
-        }
+        User sender = userRepository.findByEmail(senderEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Sender not found."));
+        User receiver = userRepository.findById(receiverId)
+                .orElseThrow(() -> new IllegalArgumentException("Receiver not found."));
 
         if (sender.getId().equals(receiver.getId())) {
-            return "You cannot connect with yourself.";
+            return "You cannot send a connection request to yourself.";
         }
 
-        if (connectionRequestRepository.findBySenderAndReceiver(sender, receiver).isPresent()
-                || connectionRequestRepository.findBySenderAndReceiver(receiver, sender).isPresent()) {
-            return "Connection request already exists between these users.";
+        if (areConnected(sender, receiver)) {
+            return "You are already connected with this user.";
+        }
+
+        if (hasPendingRequestBetweenUsers(sender, receiver)) {
+            return "A pending connection request already exists.";
         }
 
         ConnectionRequest request = new ConnectionRequest();
@@ -108,15 +64,49 @@ public class ConnectionService {
         return "Connection request sent successfully.";
     }
 
+    public List<ConnectionRequest> getSentRequests(String email) {
+        User sender = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        return connectionRequestRepository.findBySender(sender);
+    }
+
+    public List<ConnectionRequest> getReceivedRequests(String email) {
+        User receiver = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        return connectionRequestRepository.findByReceiver(receiver);
+    }
+
+    public List<User> getAcceptedConnections(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+
+        List<ConnectionRequest> acceptedRequests =
+                connectionRequestRepository.findAcceptedConnections(user.getId(), RequestStatus.ACCEPTED);
+
+        List<User> connections = new ArrayList<>();
+
+        for (ConnectionRequest request : acceptedRequests) {
+            if (request.getSender().getId().equals(user.getId())) {
+                connections.add(request.getReceiver());
+            } else {
+                connections.add(request.getSender());
+            }
+        }
+
+        return connections;
+    }
+
     @Transactional
-    public String acceptRequest(String receiverEmail, Long requestId) {
-        User receiver = userService.getUserByEmail(receiverEmail);
+    public String acceptRequest(Long requestId, String receiverEmail) {
+        ConnectionRequest request = connectionRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Connection request not found."));
 
-        ConnectionRequest request = connectionRequestRepository.findByIdAndReceiver(requestId, receiver)
-                .orElse(null);
+        if (!request.getReceiver().getEmail().equals(receiverEmail)) {
+            return "You are not allowed to accept this request.";
+        }
 
-        if (request == null) {
-            return "Request not found.";
+        if (request.getStatus() != RequestStatus.PENDING) {
+            return "This request has already been processed.";
         }
 
         request.setStatus(RequestStatus.ACCEPTED);
@@ -124,8 +114,8 @@ public class ConnectionService {
 
         notificationService.createNotification(
                 request.getSender(),
-                "Connection Accepted",
-                receiver.getFullName() + " accepted your connection request.",
+                "Connection Request Accepted",
+                request.getReceiver().getFullName() + " accepted your connection request.",
                 NotificationType.CONNECTION
         );
 
@@ -133,35 +123,75 @@ public class ConnectionService {
     }
 
     @Transactional
-    public String rejectRequest(String receiverEmail, Long requestId) {
-        User receiver = userService.getUserByEmail(receiverEmail);
+    public String rejectRequest(Long requestId, String receiverEmail) {
+        ConnectionRequest request = connectionRequestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Connection request not found."));
 
-        ConnectionRequest request = connectionRequestRepository.findByIdAndReceiver(requestId, receiver)
-                .orElse(null);
+        if (!request.getReceiver().getEmail().equals(receiverEmail)) {
+            return "You are not allowed to reject this request.";
+        }
 
-        if (request == null) {
-            return "Request not found.";
+        if (request.getStatus() != RequestStatus.PENDING) {
+            return "This request has already been processed.";
         }
 
         request.setStatus(RequestStatus.REJECTED);
         connectionRequestRepository.save(request);
 
+        notificationService.createNotification(
+                request.getSender(),
+                "Connection Request Rejected",
+                request.getReceiver().getFullName() + " rejected your connection request.",
+                NotificationType.CONNECTION
+        );
+
         return "Connection request rejected.";
     }
+
     public boolean areConnected(User user1, User user2) {
-    if (user1 == null || user2 == null) {
-        return false;
+        return connectionRequestRepository.existsAcceptedConnection(
+                user1.getId(),
+                user2.getId(),
+                RequestStatus.ACCEPTED
+        );
     }
 
-    return connectionRequestRepository.findAll().stream().anyMatch(connection ->
-            "ACCEPTED".equalsIgnoreCase(connection.getStatus().name()) &&
-            (
-                (connection.getSender().getId().equals(user1.getId()) &&
-                 connection.getReceiver().getId().equals(user2.getId()))
-             ||
-                (connection.getSender().getId().equals(user2.getId()) &&
-                 connection.getReceiver().getId().equals(user1.getId()))
-            )
-    );
-}
+    public boolean hasPendingRequestFromTo(User sender, User receiver) {
+        return connectionRequestRepository.existsBySenderAndReceiverAndStatus(
+                sender,
+                receiver,
+                RequestStatus.PENDING
+        );
+    }
+
+    public boolean hasPendingRequestBetweenUsers(User user1, User user2) {
+        return connectionRequestRepository.existsBySenderAndReceiverAndStatus(user1, user2, RequestStatus.PENDING)
+                || connectionRequestRepository.existsBySenderAndReceiverAndStatus(user2, user1, RequestStatus.PENDING);
+    }
+
+    public boolean canConnect(String currentUserEmail, Long otherUserId) {
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        User otherUser = userRepository.findById(otherUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Other user not found."));
+
+        if (currentUser.getId().equals(otherUser.getId())) {
+            return false;
+        }
+
+        if (areConnected(currentUser, otherUser)) {
+            return false;
+        }
+
+        return !hasPendingRequestBetweenUsers(currentUser, otherUser);
+    }
+
+    public boolean isPendingBetween(String currentUserEmail, Long otherUserId) {
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+        User otherUser = userRepository.findById(otherUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Other user not found."));
+
+        return hasPendingRequestBetweenUsers(currentUser, otherUser);
+    }
 }
