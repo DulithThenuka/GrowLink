@@ -27,19 +27,16 @@
                             <img th:if="${user.profileImage != null and !#strings.isEmpty(user.profileImage)}"
                                  th:src="@{${user.profileImage}}"
                                  alt="Profile Image">
-
                             <span th:if="${user.profileImage == null or #strings.isEmpty(user.profileImage)}"
                                   th:text="${#strings.substring(user.fullName,0,1)}">U</span>
                         </div>
 
                         <div class="explore-user-info">
                             <h3 th:text="${user.fullName}">User Name</h3>
-
                             <p class="skill-category"
                                th:text="${user.headline != null and !#strings.isEmpty(user.headline) ? user.headline : 'No headline added yet'}">
                                 Headline
                             </p>
-
                             <p th:text="${user.location != null and !#strings.isEmpty(user.location) ? user.location : 'No location added'}">
                                 Location
                             </p>
@@ -60,6 +57,13 @@
                             <input type="hidden" name="receiverId" th:value="${user.id}">
                             <input type="hidden" name="redirectTo" value="/explore/users">
                             <button type="submit" class="btn btn-secondary">Connect</button>
+                        </form>
+
+                        <form th:if="${currentUserEmail != null and currentUserEmail != user.email}"
+                              th:action="@{/messages/start}"
+                              method="post">
+                            <input type="hidden" name="otherUserId" th:value="${user.id}">
+                            <button type="submit" class="btn btn-secondary">Message</button>
                         </form>
 
                         <span th:if="${currentUserEmail != null and currentUserEmail != user.email and pendingMap[user.id]}"
@@ -107,19 +111,16 @@
                             <img th:if="${user.profileImage != null and !#strings.isEmpty(user.profileImage)}"
                                  th:src="@{${user.profileImage}}"
                                  alt="Profile Image">
-
                             <span th:if="${user.profileImage == null or #strings.isEmpty(user.profileImage)}"
                                   th:text="${#strings.substring(user.fullName,0,1)}">U</span>
                         </div>
 
                         <div class="explore-user-info">
                             <h3 th:text="${user.fullName}">User Name</h3>
-
                             <p class="skill-category"
                                th:text="${user.headline != null and !#strings.isEmpty(user.headline) ? user.headline : 'No headline added yet'}">
                                 Headline
                             </p>
-
                             <p th:text="${user.location != null and !#strings.isEmpty(user.location) ? user.location : 'No location added'}">
                                 Location
                             </p>
@@ -147,6 +148,13 @@
                             <input type="hidden" name="receiverId" th:value="${user.id}">
                             <input type="hidden" name="redirectTo" value="/explore/users">
                             <button type="submit" class="btn btn-secondary">Connect</button>
+                        </form>
+
+                        <form th:if="${currentUserEmail != null and currentUserEmail != user.email}"
+                              th:action="@{/messages/start}"
+                              method="post">
+                            <input type="hidden" name="otherUserId" th:value="${user.id}">
+                            <button type="submit" class="btn btn-secondary">Message</button>
                         </form>
 
                         <span th:if="${currentUserEmail != null and currentUserEmail != user.email and pendingMap[user.id]}"
