@@ -35,6 +35,7 @@ public class ExploreController {
 
         if (principal != null) {
             model.addAttribute("currentUserEmail", principal.getName());
+            model.addAttribute("recommendedUsers", userService.getRecommendedUsers(principal.getName()));
         }
 
         return "explore/users";

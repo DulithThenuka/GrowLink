@@ -11,6 +11,7 @@ import com.example.GrowLink.service.LearningRequestService;
 import com.example.GrowLink.service.NotificationService;
 import com.example.GrowLink.service.ProjectService;
 import com.example.GrowLink.service.SkillService;
+import com.example.GrowLink.service.UserService;
 
 @Controller
 public class HomeController {
@@ -20,17 +21,20 @@ public class HomeController {
     private final LearningRequestService learningRequestService;
     private final NotificationService notificationService;
     private final ProjectService projectService;
+    private final UserService userService;
 
     public HomeController(SkillService skillService,
                           ConnectionService connectionService,
                           LearningRequestService learningRequestService,
                           NotificationService notificationService,
-                          ProjectService projectService) {
+                          ProjectService projectService,
+                          UserService userService) {
         this.skillService = skillService;
         this.connectionService = connectionService;
         this.learningRequestService = learningRequestService;
         this.notificationService = notificationService;
         this.projectService = projectService;
+        this.userService = userService;
     }
 
     @GetMapping("/")
@@ -49,6 +53,7 @@ public class HomeController {
         model.addAttribute("receivedLearningCount", learningRequestService.getReceivedRequests(email).size());
         model.addAttribute("unreadNotificationCount", notificationService.getUnreadCountByUserEmail(email));
         model.addAttribute("recommendedProjects", projectService.getRecommendedProjects(email));
+        model.addAttribute("recommendedUsers", userService.getRecommendedUsers(email));
 
         return "dashboard/dashboard";
     }

@@ -10,6 +10,52 @@
 <main class="projects-page">
     <div class="container">
 
+        <div th:if="${recommendedUsers != null and !#lists.isEmpty(recommendedUsers)}" class="skills-card all-projects-section">
+            <div class="projects-topbar">
+                <div>
+                    <h1>Recommended For You</h1>
+                    <p>These users match your teach and learn skills and may be great collaborators.</p>
+                </div>
+            </div>
+
+            <div class="projects-grid">
+                <div th:each="user : ${recommendedUsers}" class="project-item explore-user-card">
+                    <div class="explore-user-top">
+                        <div class="explore-user-avatar">
+                            <img th:if="${user.profileImage != null and !#strings.isEmpty(user.profileImage)}"
+                                 th:src="@{${user.profileImage}}"
+                                 alt="Profile Image">
+
+                            <span th:if="${user.profileImage == null or #strings.isEmpty(user.profileImage)}"
+                                  th:text="${#strings.substring(user.fullName,0,1)}">U</span>
+                        </div>
+
+                        <div class="explore-user-info">
+                            <h3 th:text="${user.fullName}">User Name</h3>
+
+                            <p class="skill-category"
+                               th:text="${user.headline != null and !#strings.isEmpty(user.headline) ? user.headline : 'No headline added yet'}">
+                                Headline
+                            </p>
+
+                            <p th:text="${user.location != null and !#strings.isEmpty(user.location) ? user.location : 'No location added'}">
+                                Location
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="explore-description"
+                       th:text="${user.bio != null and user.bio.length() > 160 ? #strings.substring(user.bio, 0, 160) + '...' : (user.bio != null and !#strings.isEmpty(user.bio) ? user.bio : 'No bio added yet.')}">
+                        Bio
+                    </p>
+
+                    <div class="explore-actions">
+                        <a th:href="@{/profile/{id}(id=${user.id})}" class="btn btn-primary">View Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="projects-topbar">
             <div>
                 <h1>Explore Users</h1>
@@ -36,7 +82,6 @@
 
             <div class="projects-grid">
                 <div th:each="user : ${users}" class="project-item explore-user-card">
-
                     <div class="explore-user-top">
                         <div class="explore-user-avatar">
                             <img th:if="${user.profileImage != null and !#strings.isEmpty(user.profileImage)}"

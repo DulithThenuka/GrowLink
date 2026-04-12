@@ -1,7 +1,10 @@
 package com.example.GrowLink.service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,13 +23,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final FileUploadService fileUploadService;
+    private final SkillService skillService;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
-                       FileUploadService fileUploadService) {
+                       FileUploadService fileUploadService,
+                       SkillService skillService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.fileUploadService = fileUploadService;
+        this.skillService = skillService;
     }
 
     public Optional<User> findByEmail(String email) {
@@ -110,6 +116,73 @@ public class UserService {
                 cleanedKeyword,
                 cleanedKeyword
         );
+    }
+
+    public List<User> getRecommendedUsers(String email) {
+        User currentUser = getUserByEmail(email);
+        List<User> allUsers = userRepository.findAll();
+
+        Set<String> myTeachSkills = new LinkedHashSet<>();
+        Set<String> myLearnSkills = new LinkedHashSet<>();
+
+        skillService.getTeachSkillsByUserEmail(email).forEach(item -> {
+            if (item.getSkill() != null && item.getSkill().getName() != null) {
+                myTeachSkills.add(item.getSkill().getName().trim().toLowerCase());
+            }
+        });
+
+        skillService.getLearnSkillsByUserEmail(email).forEach(item -> {
+            if (item.getSkill() != null && item.getSkill().getName() != null) {
+                myLearnSkills.add(item.getSkill().getName().trim().toLowerCase());
+            }
+        });
+
+        List<User> recommendedUsers = new ArrayList<>();
+
+        for (User otherUser : allUsers) {
+            if (otherUser.getId().equals(currentUser.getId())) {
+                continue;
+            }
+
+            Set<String> otherTeachSkills = new LinkedHashSet<>();
+            Set<String> otherLearnSkills = new LinkedHashSet<>();
+
+            skillService.getTeachSkillsByUserEmail(otherUser.getEmail()).forEach(item -> {
+                if (item.getSkill() != null && item.getSkill().getName() != null) {
+                    otherTeachSkills.add(item.getSkill().getName().trim().toLowerCase());
+                }
+            });
+
+            skillService.getLearnSkillsByUserEmail(otherUser.getEmail()).forEach(item -> {
+                if (item.getSkill() != null && item.getSkill().getName() != null) {
+                    otherLearnSkills.add(item.getSkill().getName().trim().toLowerCase());
+                }
+            });
+
+            boolean matchFound = false;
+
+            for (String skill : myLearnSkills) {
+                if (otherTeachSkills.contains(skill)) {
+                    matchFound = true;
+                    break;
+                }
+            }
+
+            if (!matchFound) {
+                for (String skill : myTeachSkills) {
+                    if (otherLearnSkills.contains(skill)) {
+                        matchFound = true;
+                        break;
+                    }
+                }
+            }
+
+            if (matchFound) {
+                recommendedUsers.add(otherUser);
+            }
+        }
+
+        return recommendedUsers;
     }
 
     public long getTotalUsers() {
