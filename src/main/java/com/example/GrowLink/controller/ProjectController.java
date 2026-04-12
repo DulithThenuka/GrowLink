@@ -31,17 +31,18 @@ public class ProjectController {
                                    Principal principal,
                                    @RequestParam(value = "message", required = false) String message,
                                    @RequestParam(value = "keyword", required = false) String keyword,
-                                   @RequestParam(value = "category", required = false) String category,
-                                   @RequestParam(value = "status", required = false) ProjectStatus status) {
+                                   @RequestParam(value = "category", required = false) String category) {
 
-        model.addAttribute("allProjects", projectService.searchProjects(keyword, category, status));
-        model.addAttribute("myProjects", projectService.getProjectsByOwnerEmail(principal.getName()));
-        model.addAttribute("joinedProjects", projectService.getProjectsJoinedByUserEmail(principal.getName()));
+        model.addAttribute("allProjects", projectService.searchProjects(keyword, category));
+
+        if (principal != null) {
+            model.addAttribute("myProjects", projectService.getProjectsByOwnerEmail(principal.getName()));
+            model.addAttribute("joinedProjects", projectService.getProjectsJoinedByUserEmail(principal.getName()));
+        }
+
         model.addAttribute("message", message);
         model.addAttribute("keyword", keyword);
         model.addAttribute("category", category);
-        model.addAttribute("status", status);
-        model.addAttribute("statuses", ProjectStatus.values());
 
         return "projects/projects";
     }
@@ -84,12 +85,23 @@ public class ProjectController {
 
         Project project = projectService.getProjectById(projectId);
 
+        boolean isOwner = false;
+        boolean isMember = false;
+        boolean hasPendingJoinRequest = false;
+
+        if (principal != null) {
+            isOwner = projectService.isOwner(principal.getName(), projectId);
+            isMember = projectService.isMember(principal.getName(), projectId);
+            hasPendingJoinRequest = projectService.hasPendingJoinRequest(principal.getName(), projectId);
+        }
+
         model.addAttribute("project", project);
         model.addAttribute("members", projectService.getMembersByProjectId(projectId));
         model.addAttribute("joinRequests", projectService.getJoinRequestsByProjectId(projectId));
         model.addAttribute("requiredSkills", projectService.getRequiredSkillsByProjectId(projectId));
-        model.addAttribute("isOwner", projectService.isOwner(principal.getName(), projectId));
-        model.addAttribute("isMember", projectService.isMember(principal.getName(), projectId));
+        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("isMember", isMember);
+        model.addAttribute("hasPendingJoinRequest", hasPendingJoinRequest);
         model.addAttribute("statuses", ProjectStatus.values());
         model.addAttribute("message", message);
 
@@ -99,6 +111,12 @@ public class ProjectController {
     @PostMapping("/{projectId}/join")
     public String joinProject(@PathVariable Long projectId, Principal principal) {
         String message = projectService.sendJoinRequest(principal.getName(), projectId);
+        return "redirect:/projects/" + projectId + "?message=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
+    }
+
+    @PostMapping("/{projectId}/cancel-request")
+    public String cancelJoinRequest(@PathVariable Long projectId, Principal principal) {
+        String message = projectService.cancelJoinRequest(principal.getName(), projectId);
         return "redirect:/projects/" + projectId + "?message=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
     }
 
@@ -123,6 +141,14 @@ public class ProjectController {
                                     @RequestParam("projectId") Long projectId,
                                     Principal principal) {
         String message = projectService.rejectJoinRequest(principal.getName(), requestId);
+        return "redirect:/projects/" + projectId + "?message=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
+    }
+
+    @PostMapping("/{projectId}/members/{memberUserId}/remove")
+    public String removeMember(@PathVariable Long projectId,
+                               @PathVariable Long memberUserId,
+                               Principal principal) {
+        String message = projectService.removeMember(principal.getName(), projectId, memberUserId);
         return "redirect:/projects/" + projectId + "?message=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
     }
 }

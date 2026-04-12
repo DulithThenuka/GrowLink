@@ -4,18 +4,19 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import com.example.GrowLink.entity.Project;
 import com.example.GrowLink.entity.ProjectJoinRequest;
 import com.example.GrowLink.entity.User;
+import com.example.GrowLink.enums.RequestStatus;
 
-@Repository
 public interface ProjectJoinRequestRepository extends JpaRepository<ProjectJoinRequest, Long> {
 
-    List<ProjectJoinRequest> findByProject(Project project);
+    List<ProjectJoinRequest> findByProjectOrderByIdDesc(Project project);
 
-    List<ProjectJoinRequest> findByUser(User user);
+    List<ProjectJoinRequest> findByProjectAndStatusOrderByIdDesc(Project project, RequestStatus status);
 
     Optional<ProjectJoinRequest> findByProjectAndUser(Project project, User user);
+
+    boolean existsByProjectAndUserAndStatus(Project project, User user, RequestStatus status);
 }

@@ -22,4 +22,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByHeadlineContainingIgnoreCase(String headline);
 
     List<User> findByFullNameContainingIgnoreCaseOrHeadlineContainingIgnoreCase(String fullName, String headline);
+
 }

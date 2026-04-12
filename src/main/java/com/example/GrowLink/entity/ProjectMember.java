@@ -7,7 +7,12 @@ import com.example.GrowLink.enums.ProjectRole;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "project_members")
+@Table(
+        name = "project_members",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"project_id", "user_id"})
+        }
+)
 public class ProjectMember {
 
     @Id
@@ -23,18 +28,20 @@ public class ProjectMember {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private ProjectRole role;
+    @Column(nullable = false, length = 20)
+    private ProjectRole role = ProjectRole.MEMBER;
 
-    @Column(name = "joined_at")
+    @Column(nullable = false)
     private LocalDateTime joinedAt;
 
-    public ProjectMember() {
-    }
-
     @PrePersist
-    public void onCreate() {
-        this.joinedAt = LocalDateTime.now();
+    protected void onCreate() {
+        if (joinedAt == null) {
+            joinedAt = LocalDateTime.now();
+        }
+        if (role == null) {
+            role = ProjectRole.MEMBER;
+        }
     }
 
     public Long getId() {
@@ -45,35 +52,27 @@ public class ProjectMember {
         return project;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public ProjectRole getRole() {
-        return role;
-    }
-
-    public LocalDateTime getJoinedAt() {
-        return joinedAt;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public void setProject(Project project) {
         this.project = project;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public void setUser(User user) {
         this.user = user;
     }
 
+    public ProjectRole getRole() {
+        return role;
+    }
+
     public void setRole(ProjectRole role) {
         this.role = role;
     }
 
-    public void setJoinedAt(LocalDateTime joinedAt) {
-        this.joinedAt = joinedAt;
+    public LocalDateTime getJoinedAt() {
+        return joinedAt;
     }
 }

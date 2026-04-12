@@ -1,9 +1,7 @@
 package com.example.GrowLink.service;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -13,223 +11,195 @@ import com.example.GrowLink.dto.ProjectDto;
 import com.example.GrowLink.entity.Project;
 import com.example.GrowLink.entity.ProjectJoinRequest;
 import com.example.GrowLink.entity.ProjectMember;
-import com.example.GrowLink.entity.ProjectRequiredSkill;
 import com.example.GrowLink.entity.User;
-import com.example.GrowLink.enums.NotificationType;
 import com.example.GrowLink.enums.ProjectRole;
 import com.example.GrowLink.enums.ProjectStatus;
 import com.example.GrowLink.enums.RequestStatus;
 import com.example.GrowLink.repository.ProjectJoinRequestRepository;
 import com.example.GrowLink.repository.ProjectMemberRepository;
 import com.example.GrowLink.repository.ProjectRepository;
-import com.example.GrowLink.repository.ProjectRequiredSkillRepository;
+import com.example.GrowLink.repository.UserRepository;
 
 @Service
+@Transactional
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectJoinRequestRepository projectJoinRequestRepository;
     private final ProjectMemberRepository projectMemberRepository;
-    private final ProjectRequiredSkillRepository projectRequiredSkillRepository;
-    private final UserService userService;
-    private final SkillService skillService;
-    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     public ProjectService(ProjectRepository projectRepository,
                           ProjectJoinRequestRepository projectJoinRequestRepository,
                           ProjectMemberRepository projectMemberRepository,
-                          ProjectRequiredSkillRepository projectRequiredSkillRepository,
-                          UserService userService,
-                          SkillService skillService,
-                          NotificationService notificationService) {
+                          UserRepository userRepository) {
         this.projectRepository = projectRepository;
         this.projectJoinRequestRepository = projectJoinRequestRepository;
         this.projectMemberRepository = projectMemberRepository;
-        this.projectRequiredSkillRepository = projectRequiredSkillRepository;
-        this.userService = userService;
-        this.skillService = skillService;
-        this.notificationService = notificationService;
+        this.userRepository = userRepository;
     }
 
-    public List<Project> getAllProjects() {
-        return projectRepository.findAll();
+    public void createProject(String email, ProjectDto projectDto) {
+        User owner = getUserByEmail(email);
+
+        Project project = new Project();
+
+        project.setTitle(projectDto.getTitle());
+        project.setDescription(projectDto.getDescription());
+        project.setCategory(projectDto.getCategory());
+        project.setStatus(projectDto.getStatus() != null ? projectDto.getStatus() : ProjectStatus.OPEN);
+        project.setOwner(owner);
+
+        Project savedProject = projectRepository.save(project);
+
+        ProjectMember ownerMember = new ProjectMember();
+        ownerMember.setProject(savedProject);
+        ownerMember.setUser(owner);
+        ownerMember.setRole(ProjectRole.OWNER);
+        projectMemberRepository.save(ownerMember);
     }
 
-    public List<Project> getProjectsByOwnerEmail(String email) {
-        User owner = userService.getUserByEmail(email);
-        return projectRepository.findByOwner(owner);
-    }
-
-    public List<ProjectJoinRequest> getJoinRequestsByProjectId(Long projectId) {
-        Project project = getProjectById(projectId);
-        return projectJoinRequestRepository.findByProject(project);
-    }
-
-    public List<ProjectMember> getMembersByProjectId(Long projectId) {
-        Project project = getProjectById(projectId);
-        return projectMemberRepository.findByProject(project);
-    }
-
-    public List<ProjectMember> getProjectsJoinedByUserEmail(String email) {
-        User user = userService.getUserByEmail(email);
-        return projectMemberRepository.findByUser(user);
-    }
-
-    public List<ProjectRequiredSkill> getRequiredSkillsByProjectId(Long projectId) {
-        Project project = getProjectById(projectId);
-        return projectRequiredSkillRepository.findByProject(project);
-    }
-
-    public Project getProjectById(Long id) {
-        return projectRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Project not found."));
-    }
-
-    public boolean isOwner(String email, Long projectId) {
-        Project project = getProjectById(projectId);
-        return project.getOwner().getEmail().equals(email);
-    }
-
-    public boolean isMember(String email, Long projectId) {
-        User user = userService.getUserByEmail(email);
-        Project project = getProjectById(projectId);
-        return projectMemberRepository.findByProjectAndUser(project, user).isPresent();
-    }
-
-    public List<Project> searchProjects(String keyword, String category, ProjectStatus status) {
+    @Transactional(readOnly = true)
+    public List<Project> searchProjects(String keyword, String category) {
         boolean hasKeyword = keyword != null && !keyword.isBlank();
         boolean hasCategory = category != null && !category.isBlank();
-        boolean hasStatus = status != null;
-
-        String cleanedKeyword = hasKeyword ? keyword.trim() : null;
-        String cleanedCategory = hasCategory ? category.trim() : null;
-
-        if (hasKeyword && hasCategory && hasStatus) {
-            return projectRepository.findByTitleContainingIgnoreCaseAndCategoryContainingIgnoreCaseAndStatus(
-                    cleanedKeyword,
-                    cleanedCategory,
-                    status
-            );
-        }
 
         if (hasKeyword && hasCategory) {
-            return projectRepository.findByTitleContainingIgnoreCaseAndCategoryContainingIgnoreCase(
-                    cleanedKeyword,
-                    cleanedCategory
-            );
-        }
-
-        if (hasKeyword && hasStatus) {
-            return projectRepository.findByTitleContainingIgnoreCaseAndStatus(
-                    cleanedKeyword,
-                    status
-            );
-        }
-
-        if (hasCategory && hasStatus) {
-            return projectRepository.findByCategoryContainingIgnoreCaseAndStatus(
-                    cleanedCategory,
-                    status
-            );
+            return projectRepository
+                    .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseAndCategoryIgnoreCaseOrderByIdDesc(
+                            keyword, keyword, category
+                    );
         }
 
         if (hasKeyword) {
-            return projectRepository.findByTitleContainingIgnoreCase(cleanedKeyword);
+            return projectRepository
+                    .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrderByIdDesc(keyword, keyword);
         }
 
         if (hasCategory) {
-            return projectRepository.findByCategoryContainingIgnoreCase(cleanedCategory);
+            return projectRepository.findByCategoryIgnoreCaseOrderByIdDesc(category);
         }
 
-        if (hasStatus) {
-            return projectRepository.findByStatus(status);
-        }
-
-        return projectRepository.findAll();
+        return projectRepository.findAll()
+                .stream()
+                .sorted((a, b) -> Long.compare(b.getId(), a.getId()))
+                .toList();
     }
 
-    public List<Project> getRecommendedProjects(String email) {
-        User user = userService.getUserByEmail(email);
+    @Transactional(readOnly = true)
+    public List<Project> getProjectsByOwnerEmail(String email) {
+        User user = getUserByEmail(email);
+        return projectRepository.findByOwnerOrderByIdDesc(user);
+    }
 
-        Set<String> userSkillNames = new LinkedHashSet<>();
+    @Transactional(readOnly = true)
+    public List<Project> getProjectsJoinedByUserEmail(String email) {
+        User user = getUserByEmail(email);
+        List<ProjectMember> memberships = projectMemberRepository.findByUserOrderByIdDesc(user);
 
-        skillService.getTeachSkillsByUserEmail(email).forEach(item -> {
-            if (item.getSkill() != null && item.getSkill().getName() != null) {
-                userSkillNames.add(item.getSkill().getName().trim().toLowerCase());
-            }
-        });
-
-        skillService.getLearnSkillsByUserEmail(email).forEach(item -> {
-            if (item.getSkill() != null && item.getSkill().getName() != null) {
-                userSkillNames.add(item.getSkill().getName().trim().toLowerCase());
-            }
-        });
-
-        List<Project> allProjects = projectRepository.findAll();
-        List<Project> recommendedProjects = new ArrayList<>();
-
-        for (Project project : allProjects) {
-            if (project.getOwner() != null && project.getOwner().getId().equals(user.getId())) {
-                continue;
-            }
-
-            if (project.getStatus() != ProjectStatus.OPEN) {
-                continue;
-            }
-
-            if (projectMemberRepository.findByProjectAndUser(project, user).isPresent()) {
-                continue;
-            }
-
-            List<ProjectRequiredSkill> requiredSkills = projectRequiredSkillRepository.findByProject(project);
-
-            boolean matches = false;
-
-            for (ProjectRequiredSkill requiredSkill : requiredSkills) {
-                if (requiredSkill.getSkillName() != null &&
-                    userSkillNames.contains(requiredSkill.getSkillName().trim().toLowerCase())) {
-                    matches = true;
-                    break;
-                }
-            }
-
-            if (matches) {
-                recommendedProjects.add(project);
+        List<Project> projects = new ArrayList<>();
+        for (ProjectMember membership : memberships) {
+            if (membership.getProject() != null) {
+                projects.add(membership.getProject());
             }
         }
 
-        return recommendedProjects;
+        return projects.stream().distinct().toList();
     }
 
-    @Transactional
-    public void createProject(String email, ProjectDto dto) {
-        User owner = userService.getUserByEmail(email);
-
-        Project project = new Project();
-        project.setTitle(dto.getTitle().trim());
-        project.setDescription(dto.getDescription().trim());
-        project.setCategory(dto.getCategory() != null ? dto.getCategory().trim() : null);
-        project.setStatus(ProjectStatus.OPEN);
-        project.setOwner(owner);
-
-        projectRepository.save(project);
-
-        ProjectMember ownerMember = new ProjectMember();
-        ownerMember.setProject(project);
-        ownerMember.setUser(owner);
-        ownerMember.setRole(ProjectRole.OWNER);
-
-        projectMemberRepository.save(ownerMember);
-
-        saveRequiredSkills(project, dto.getRequiredSkillsText());
+    @Transactional(readOnly = true)
+    public Project getProjectById(Long projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Project not found."));
     }
 
-    @Transactional
-    public String updateProjectStatus(String ownerEmail, Long projectId, ProjectStatus status) {
+    @Transactional(readOnly = true)
+    public List<ProjectMember> getMembersByProjectId(Long projectId) {
+        Project project = getProjectById(projectId);
+        return projectMemberRepository.findByProjectOrderByIdAsc(project);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProjectJoinRequest> getJoinRequestsByProjectId(Long projectId) {
+        Project project = getProjectById(projectId);
+        return projectJoinRequestRepository.findByProjectAndStatusOrderByIdDesc(project, RequestStatus.PENDING);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> getRequiredSkillsByProjectId(Long projectId) {
+        return new ArrayList<>();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isOwner(String email, Long projectId) {
+        Project project = getProjectById(projectId);
+        return project.getOwner() != null
+                && project.getOwner().getEmail() != null
+                && project.getOwner().getEmail().equalsIgnoreCase(email);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isMember(String email, Long projectId) {
+        Project project = getProjectById(projectId);
+        User user = getUserByEmail(email);
+        return projectMemberRepository.existsByProjectAndUser(project, user);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean hasPendingJoinRequest(String email, Long projectId) {
+        Project project = getProjectById(projectId);
+        User user = getUserByEmail(email);
+        return projectJoinRequestRepository.existsByProjectAndUserAndStatus(project, user, RequestStatus.PENDING);
+    }
+
+    public String sendJoinRequest(String email, Long projectId) {
+        Project project = getProjectById(projectId);
+        User user = getUserByEmail(email);
+
+        if (project.getOwner() != null && project.getOwner().getId().equals(user.getId())) {
+            return "You already own this project.";
+        }
+
+        if (projectMemberRepository.existsByProjectAndUser(project, user)) {
+            return "You are already a member of this project.";
+        }
+
+        if (projectJoinRequestRepository.existsByProjectAndUserAndStatus(project, user, RequestStatus.PENDING)) {
+            return "You already have a pending join request.";
+        }
+
+        ProjectJoinRequest request = projectJoinRequestRepository.findByProjectAndUser(project, user)
+                .orElse(new ProjectJoinRequest());
+
+        request.setProject(project);
+        request.setUser(user);
+        request.setStatus(RequestStatus.PENDING);
+        request.setMessage("I would like to join this project.");
+        projectJoinRequestRepository.save(request);
+
+        return "Join request sent successfully.";
+    }
+
+    public String cancelJoinRequest(String email, Long projectId) {
+        Project project = getProjectById(projectId);
+        User user = getUserByEmail(email);
+
+        ProjectJoinRequest request = projectJoinRequestRepository.findByProjectAndUser(project, user)
+                .orElseThrow(() -> new IllegalArgumentException("Join request not found."));
+
+        if (request.getStatus() != RequestStatus.PENDING) {
+            return "Only pending requests can be cancelled.";
+        }
+
+        projectJoinRequestRepository.delete(request);
+        return "Join request cancelled.";
+    }
+
+    public String updateProjectStatus(String email, Long projectId, ProjectStatus status) {
         Project project = getProjectById(projectId);
 
-        if (!project.getOwner().getEmail().equals(ownerEmail)) {
-            throw new AccessDeniedException("You are not allowed to update this project.");
+        if (!isOwner(email, projectId)) {
+            throw new AccessDeniedException("Only the project owner can update status.");
         }
 
         project.setStatus(status);
@@ -238,127 +208,82 @@ public class ProjectService {
         return "Project status updated successfully.";
     }
 
-    @Transactional
-    public String sendJoinRequest(String email, Long projectId) {
-        User user = userService.getUserByEmail(email);
-        Project project = getProjectById(projectId);
-
-        if (project.getOwner().getId().equals(user.getId())) {
-            return "You are already the owner of this project.";
-        }
-
-        if (project.getStatus() != ProjectStatus.OPEN) {
-            return "This project is not open for joining.";
-        }
-
-        if (projectMemberRepository.findByProjectAndUser(project, user).isPresent()) {
-            return "You are already a member of this project.";
-        }
-
-        if (projectJoinRequestRepository.findByProjectAndUser(project, user).isPresent()) {
-            return "You already sent a join request for this project.";
-        }
-
-        ProjectJoinRequest joinRequest = new ProjectJoinRequest();
-        joinRequest.setProject(project);
-        joinRequest.setUser(user);
-        joinRequest.setStatus(RequestStatus.PENDING);
-
-        projectJoinRequestRepository.save(joinRequest);
-
-        notificationService.createNotification(
-                project.getOwner(),
-                "New Project Join Request",
-                user.getFullName() + " requested to join your project: " + project.getTitle(),
-                NotificationType.SYSTEM
-        );
-
-        return "Join request sent successfully.";
-    }
-
-    @Transactional
     public String acceptJoinRequest(String ownerEmail, Long requestId) {
         ProjectJoinRequest request = projectJoinRequestRepository.findById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("Join request not found."));
 
         Project project = request.getProject();
 
-        if (!project.getOwner().getEmail().equals(ownerEmail)) {
-            throw new AccessDeniedException("You are not allowed to manage this request.");
+        if (project == null) {
+            throw new IllegalArgumentException("Project not found.");
+        }
+
+        if (project.getOwner() == null || !project.getOwner().getEmail().equalsIgnoreCase(ownerEmail)) {
+            throw new AccessDeniedException("Only the project owner can accept requests.");
         }
 
         if (request.getStatus() != RequestStatus.PENDING) {
-            return "This join request has already been processed.";
+            return "This request is already processed.";
         }
 
         request.setStatus(RequestStatus.ACCEPTED);
         projectJoinRequestRepository.save(request);
 
-        ProjectMember member = new ProjectMember();
-        member.setProject(project);
-        member.setUser(request.getUser());
-        member.setRole(ProjectRole.MEMBER);
+        if (!projectMemberRepository.existsByProjectAndUser(project, request.getUser())) {
+            ProjectMember member = new ProjectMember();
+            member.setProject(project);
+            member.setUser(request.getUser());
+            member.setRole(ProjectRole.MEMBER);
+            projectMemberRepository.save(member);
+        }
 
-        projectMemberRepository.save(member);
-
-        notificationService.createNotification(
-                request.getUser(),
-                "Project Request Accepted",
-                "You were accepted into the project: " + project.getTitle(),
-                NotificationType.SYSTEM
-        );
-
-        return "Join request accepted.";
+        return "Join request accepted successfully.";
     }
 
-    @Transactional
     public String rejectJoinRequest(String ownerEmail, Long requestId) {
         ProjectJoinRequest request = projectJoinRequestRepository.findById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("Join request not found."));
 
         Project project = request.getProject();
 
-        if (!project.getOwner().getEmail().equals(ownerEmail)) {
-            throw new AccessDeniedException("You are not allowed to manage this request.");
+        if (project == null) {
+            throw new IllegalArgumentException("Project not found.");
+        }
+
+        if (project.getOwner() == null || !project.getOwner().getEmail().equalsIgnoreCase(ownerEmail)) {
+            throw new AccessDeniedException("Only the project owner can reject requests.");
         }
 
         if (request.getStatus() != RequestStatus.PENDING) {
-            return "This join request has already been processed.";
+            return "This request is already processed.";
         }
 
         request.setStatus(RequestStatus.REJECTED);
         projectJoinRequestRepository.save(request);
 
-        notificationService.createNotification(
-                request.getUser(),
-                "Project Request Rejected",
-                "Your join request for the project \"" + project.getTitle() + "\" was rejected.",
-                NotificationType.SYSTEM
-        );
-
-        return "Join request rejected.";
+        return "Join request rejected successfully.";
     }
 
-    private void saveRequiredSkills(Project project, String requiredSkillsText) {
-        if (requiredSkillsText == null || requiredSkillsText.isBlank()) {
-            return;
+    public String removeMember(String ownerEmail, Long projectId, Long memberUserId) {
+        Project project = getProjectById(projectId);
+
+        if (!isOwner(ownerEmail, projectId)) {
+            throw new AccessDeniedException("Only the project owner can remove members.");
         }
 
-        Set<String> uniqueSkills = new LinkedHashSet<>();
-        String[] parts = requiredSkillsText.split(",");
+        User memberUser = userRepository.findById(memberUserId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
 
-        for (String part : parts) {
-            String skill = part.trim();
-            if (!skill.isEmpty()) {
-                uniqueSkills.add(skill);
-            }
+        if (project.getOwner() != null && project.getOwner().getId().equals(memberUserId)) {
+            return "Owner cannot be removed from the project.";
         }
 
-        for (String skillName : uniqueSkills) {
-            ProjectRequiredSkill requiredSkill = new ProjectRequiredSkill();
-            requiredSkill.setProject(project);
-            requiredSkill.setSkillName(skillName);
-            projectRequiredSkillRepository.save(requiredSkill);
-        }
+        projectMemberRepository.deleteByProjectAndUser(project, memberUser);
+        return "Member removed successfully.";
+    }
+
+    private User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
     }
 }
