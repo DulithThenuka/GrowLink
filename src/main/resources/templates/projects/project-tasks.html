@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${project.title + ' Tasks | GrowLink'}">Project Tasks | GrowLink</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            padding: 0;
+            color: #1f2937;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        .summary-box {
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 18px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+        }
+
+        .summary-box h3 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .summary-box p {
+            margin: 8px 0 0;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1.8fr;
+            gap: 20px;
+        }
+
+        .task-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+            background: #fcfcfd;
+        }
+
+        .task-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .badge-low {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .badge-medium {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .badge-high {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge-status {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .muted {
+            color: #6b7280;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+
+        .error-text {
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        .actions-inline {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            margin-top: 6px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        label {
+            font-weight: 600;
+        }
+
+        .empty {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        a.link-btn {
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div th:if="${message != null and !#strings.isEmpty(message)}" class="success-message" th:text="${message}">
+        Action completed.
+    </div>
+
+    <div class="card">
+        <div class="top-bar">
+            <div>
+                <h1 style="margin:0;" th:text="${project.title + ' Task Board'}">Project Task Board</h1>
+                <p class="muted" style="margin:8px 0 0;">
+                    Manage work for this project team.
+                </p>
+            </div>
+
+            <div class="actions-inline">
+                <a class="link-btn" th:href="@{/projects/{projectId}(projectId=${project.id})}">
+                    <button type="button" class="btn btn-secondary">Back to Project</button>
+                </a>
+            </div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-box">
+                <h3 th:text="${todoCount}">0</h3>
+                <p>TODO</p>
+            </div>
+            <div class="summary-box">
+                <h3 th:text="${inProgressCount}">0</h3>
+                <p>IN PROGRESS</p>
+            </div>
+            <div class="summary-box">
+                <h3 th:text="${doneCount}">0</h3>
+                <p>DONE</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid">
+
+        <div>
+            <div class="card" th:if="${isOwner}">
+                <h2>Create New Task</h2>
+
+                <form th:action="@{/projects/{projectId}/tasks/create(projectId=${project.id})}" method="post" th:object="${taskDto}">
+                    <div style="margin-bottom:14px;">
+                        <label for="title">Task Title</label>
+                        <input id="title" type="text" th:field="*{title}" placeholder="Enter task title">
+                        <div class="error-text" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                        <label for="description">Description</label>
+                        <textarea id="description" th:field="*{description}" placeholder="Task details"></textarea>
+                        <div class="error-text" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                        <label for="priority">Priority</label>
+                        <select id="priority" th:field="*{priority}">
+                            <option value="">Select priority</option>
+                            <option th:each="priority : ${priorities}"
+                                    th:value="${priority}"
+                                    th:text="${priority}">
+                                MEDIUM
+                            </option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                        <label for="dueDate">Due Date</label>
+                        <input id="dueDate" type="date" th:field="*{dueDate}">
+                    </div>
+
+                    <div style="margin-bottom:18px;">
+                        <label for="assignedUserId">Assign To</label>
+                        <select id="assignedUserId" th:field="*{assignedUserId}">
+                            <option value="">Unassigned</option>
+                            <option th:each="member : ${members}"
+                                    th:if="${member.user != null}"
+                                    th:value="${member.user.id}"
+                                    th:text="${member.user.fullName}">
+                                Member Name
+                            </option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create Task</button>
+                </form>
+            </div>
+        </div>
+
+        <div>
+            <div class="card">
+                <h2>All Tasks</h2>
+
+                <div th:if="${#lists.isEmpty(tasks)}" class="empty">
+                    No tasks created yet.
+                </div>
+
+                <div th:each="task : ${tasks}" class="task-card">
+                    <div class="task-top">
+                        <div>
+                            <h3 style="margin:0 0 10px;" th:text="${task.title}">Task Title</h3>
+
+                            <div style="margin-bottom:10px;">
+                                <span class="badge"
+                                      th:classappend="${task.priority.name() == 'LOW'} ? ' badge-low' :
+                                                      (${task.priority.name() == 'MEDIUM'} ? ' badge-medium' : ' badge-high')"
+                                      th:text="${task.priority}">
+                                    MEDIUM
+                                </span>
+
+                                <span class="badge badge-status" th:text="${task.status}">TODO</span>
+                            </div>
+
+                            <p class="muted" th:if="${task.description != null and !#strings.isEmpty(task.description)}"
+                               th:text="${task.description}">
+                                Task description
+                            </p>
+
+                            <p class="muted" th:if="${task.assignedUser != null}">
+                                Assigned to:
+                                <strong th:text="${task.assignedUser.fullName}">User Name</strong>
+                            </p>
+
+                            <p class="muted" th:if="${task.assignedUser == null}">
+                                Assigned to: <strong>Unassigned</strong>
+                            </p>
+
+                            <p class="muted" th:if="${task.dueDate != null}">
+                                Due date:
+                                <strong th:text="${task.dueDate}">2026-04-11</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="actions-inline">
+                        <form th:action="@{/projects/{projectId}/tasks/{taskId}/status(projectId=${project.id}, taskId=${task.id})}" method="post">
+                            <select name="status" style="width:auto; min-width:160px;">
+                                <option th:each="status : ${statuses}"
+                                        th:value="${status}"
+                                        th:text="${status}"
+                                        th:selected="${status == task.status}">
+                                    TODO
+                                </option>
+                            </select>
+                            <button type="submit" class="btn btn-secondary btn-sm">Update Status</button>
+                        </form>
+                    </div>
+
+                    <div class="actions-inline" th:if="${isOwner}">
+                        <form th:action="@{/projects/{projectId}/tasks/{taskId}/assign(projectId=${project.id}, taskId=${task.id})}" method="post">
+                            <select name="userId" style="width:auto; min-width:180px;">
+                                <option value="">Unassigned</option>
+                                <option th:each="member : ${members}"
+                                        th:if="${member.user != null}"
+                                        th:value="${member.user.id}"
+                                        th:text="${member.user.fullName}"
+                                        th:selected="${task.assignedUser != null and task.assignedUser.id == member.user.id}">
+                                    Member Name
+                                </option>
+                            </select>
+                            <button type="submit" class="btn btn-secondary btn-sm">Assign</button>
+                        </form>
+
+                        <form th:action="@{/projects/{projectId}/tasks/{taskId}/delete(projectId=${project.id}, taskId=${task.id})}" method="post">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
