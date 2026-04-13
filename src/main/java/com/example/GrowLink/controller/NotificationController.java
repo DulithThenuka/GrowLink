@@ -1,78 +1,54 @@
 package com.example.GrowLink.controller;
 
-import java.util.List;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.*;
 
-import com.example.GrowLink.entity.Notification;
-import com.example.GrowLink.entity.User;
 import com.example.GrowLink.service.NotificationService;
-import com.example.GrowLink.service.UserService;
 
 @Controller
+@RequestMapping("/notifications")
 public class NotificationController {
 
     private final NotificationService notificationService;
-    private final UserService userService;
 
-    public NotificationController(NotificationService notificationService,
-                                  UserService userService) {
+    public NotificationController(NotificationService notificationService) {
         this.notificationService = notificationService;
-        this.userService = userService;
     }
 
-    @GetMapping("/notifications")
-    public String notifications(Authentication authentication, Model model) {
-        if (authentication == null || !authentication.isAuthenticated()) {
+    @GetMapping
+    public String showNotificationsPage(Model model,
+                                        Principal principal,
+                                        @RequestParam(value = "message", required = false) String message) {
+
+        if (principal == null) {
             return "redirect:/login";
         }
 
-        User loggedUser = userService.getUserByEmail(authentication.getName());
+        model.addAttribute("notifications", notificationService.getNotificationsByUserEmail(principal.getName()));
+        model.addAttribute("unreadCount", notificationService.getUnreadCount(principal.getName()));
+        model.addAttribute("message", message);
 
-        List<Notification> notifications = notificationService.getNotificationsForUser(loggedUser);
-        List<Notification> unreadNotifications = notificationService.getUnreadNotifications(loggedUser);
-        long unreadCount = notificationService.getUnreadCount(loggedUser);
-
-        model.addAttribute("loggedUser", loggedUser);
-        model.addAttribute("notifications", notifications);
-        model.addAttribute("unreadNotifications", unreadNotifications);
-        model.addAttribute("unreadCount", unreadCount);
-
-        return "notifications/notifications";
+        return "notifications/list";
     }
 
-    @PostMapping("/notifications/read")
-    public String markAsRead(@RequestParam("notificationId") Long notificationId,
-                             Authentication authentication,
-                             RedirectAttributes redirectAttributes) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return "redirect:/login";
-        }
+    @PostMapping("/{notificationId}/read")
+    public String markAsRead(@PathVariable Long notificationId, Principal principal) {
+        String message = notificationService.markAsRead(notificationId, principal.getName());
 
-        User loggedUser = userService.getUserByEmail(authentication.getName());
-        notificationService.markAsRead(notificationId, loggedUser);
-
-        redirectAttributes.addFlashAttribute("successMessage", "Notification marked as read.");
-        return "redirect:/notifications";
+        return "redirect:/notifications?message=" +
+                URLEncoder.encode(message, StandardCharsets.UTF_8);
     }
 
-    @PostMapping("/notifications/read-all")
-    public String markAllAsRead(Authentication authentication,
-                                RedirectAttributes redirectAttributes) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return "redirect:/login";
-        }
+    @PostMapping("/read-all")
+    public String markAllAsRead(Principal principal) {
+        String message = notificationService.markAllAsRead(principal.getName());
 
-        User loggedUser = userService.getUserByEmail(authentication.getName());
-        notificationService.markAllAsRead(loggedUser);
-
-        redirectAttributes.addFlashAttribute("successMessage", "All notifications marked as read.");
-        return "redirect:/notifications";
+        return "redirect:/notifications?message=" +
+                URLEncoder.encode(message, StandardCharsets.UTF_8);
     }
 }

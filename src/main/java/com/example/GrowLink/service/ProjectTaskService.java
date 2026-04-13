@@ -11,6 +11,7 @@ import com.example.GrowLink.entity.Project;
 import com.example.GrowLink.entity.ProjectMember;
 import com.example.GrowLink.entity.ProjectTask;
 import com.example.GrowLink.entity.User;
+import com.example.GrowLink.enums.NotificationType;
 import com.example.GrowLink.enums.TaskPriority;
 import com.example.GrowLink.enums.TaskStatus;
 import com.example.GrowLink.repository.ProjectMemberRepository;
@@ -26,15 +27,18 @@ public class ProjectTaskService {
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public ProjectTaskService(ProjectTaskRepository projectTaskRepository,
                               ProjectRepository projectRepository,
                               ProjectMemberRepository projectMemberRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository,
+                              NotificationService notificationService) {
         this.projectTaskRepository = projectTaskRepository;
         this.projectRepository = projectRepository;
         this.projectMemberRepository = projectMemberRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     @Transactional(readOnly = true)
@@ -101,6 +105,8 @@ public class ProjectTaskService {
             throw new AccessDeniedException("Only the project owner can create tasks.");
         }
 
+        User owner = getUserByEmail(ownerEmail);
+
         ProjectTask task = new ProjectTask();
         task.setProject(project);
         task.setTitle(dto.getTitle());
@@ -121,6 +127,16 @@ public class ProjectTaskService {
         }
 
         projectTaskRepository.save(task);
+
+        if (task.getAssignedUser() != null && !task.getAssignedUser().getId().equals(owner.getId())) {
+            notificationService.createNotification(
+                    task.getAssignedUser(),
+                    "New Task Assigned",
+                    "You were assigned a task: " + task.getTitle() + " in project " + project.getTitle() + ".",
+                    NotificationType.TASK
+            );
+        }
+
         return "Task created successfully.";
     }
 
@@ -139,8 +155,28 @@ public class ProjectTaskService {
             throw new AccessDeniedException("Only project members can update task status.");
         }
 
+        User actionUser = getUserByEmail(userEmail);
+
         task.setStatus(status);
         projectTaskRepository.save(task);
+
+        if (project.getOwner() != null && !project.getOwner().getId().equals(actionUser.getId())) {
+            notificationService.createNotification(
+                    project.getOwner(),
+                    "Task Status Updated",
+                    actionUser.getFullName() + " updated task \"" + task.getTitle() + "\" to " + status + ".",
+                    NotificationType.TASK
+            );
+        }
+
+        if (task.getAssignedUser() != null && !task.getAssignedUser().getId().equals(actionUser.getId())) {
+            notificationService.createNotification(
+                    task.getAssignedUser(),
+                    "Task Status Changed",
+                    "Task \"" + task.getTitle() + "\" is now " + status + ".",
+                    NotificationType.TASK
+            );
+        }
 
         return "Task status updated successfully.";
     }
@@ -172,6 +208,13 @@ public class ProjectTaskService {
 
         task.setAssignedUser(assignedUser);
         projectTaskRepository.save(task);
+
+        notificationService.createNotification(
+                assignedUser,
+                "Task Assigned",
+                "You were assigned to task: " + task.getTitle() + " in project " + project.getTitle() + ".",
+                NotificationType.TASK
+        );
 
         return "Task assigned successfully.";
     }

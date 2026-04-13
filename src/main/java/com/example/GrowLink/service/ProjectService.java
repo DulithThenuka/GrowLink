@@ -12,6 +12,7 @@ import com.example.GrowLink.entity.Project;
 import com.example.GrowLink.entity.ProjectJoinRequest;
 import com.example.GrowLink.entity.ProjectMember;
 import com.example.GrowLink.entity.User;
+import com.example.GrowLink.enums.NotificationType;
 import com.example.GrowLink.enums.ProjectRole;
 import com.example.GrowLink.enums.ProjectStatus;
 import com.example.GrowLink.enums.RequestStatus;
@@ -28,15 +29,18 @@ public class ProjectService {
     private final ProjectJoinRequestRepository projectJoinRequestRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public ProjectService(ProjectRepository projectRepository,
                           ProjectJoinRequestRepository projectJoinRequestRepository,
                           ProjectMemberRepository projectMemberRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          NotificationService notificationService) {
         this.projectRepository = projectRepository;
         this.projectJoinRequestRepository = projectJoinRequestRepository;
         this.projectMemberRepository = projectMemberRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     public void createProject(String email, ProjectDto projectDto) {
@@ -177,6 +181,15 @@ public class ProjectService {
         request.setMessage("I would like to join this project.");
         projectJoinRequestRepository.save(request);
 
+        if (project.getOwner() != null) {
+            notificationService.createNotification(
+                    project.getOwner(),
+                    "New Project Join Request",
+                    user.getFullName() + " requested to join project " + project.getTitle() + ".",
+                    NotificationType.PROJECT
+            );
+        }
+
         return "Join request sent successfully.";
     }
 
@@ -237,6 +250,13 @@ public class ProjectService {
             projectMemberRepository.save(member);
         }
 
+        notificationService.createNotification(
+                request.getUser(),
+                "Project Join Request Accepted",
+                "Your request to join project " + project.getTitle() + " was accepted.",
+                NotificationType.PROJECT
+        );
+
         return "Join request accepted successfully.";
     }
 
@@ -261,6 +281,13 @@ public class ProjectService {
         request.setStatus(RequestStatus.REJECTED);
         projectJoinRequestRepository.save(request);
 
+        notificationService.createNotification(
+                request.getUser(),
+                "Project Join Request Rejected",
+                "Your request to join project " + project.getTitle() + " was rejected.",
+                NotificationType.PROJECT
+        );
+
         return "Join request rejected successfully.";
     }
 
@@ -279,6 +306,14 @@ public class ProjectService {
         }
 
         projectMemberRepository.deleteByProjectAndUser(project, memberUser);
+
+        notificationService.createNotification(
+                memberUser,
+                "Removed From Project",
+                "You were removed from project " + project.getTitle() + ".",
+                NotificationType.PROJECT
+        );
+
         return "Member removed successfully.";
     }
 

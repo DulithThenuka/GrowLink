@@ -1,8 +1,8 @@
 package com.example.GrowLink.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,20 +10,21 @@ import com.example.GrowLink.entity.Notification;
 import com.example.GrowLink.entity.User;
 import com.example.GrowLink.enums.NotificationType;
 import com.example.GrowLink.repository.NotificationRepository;
+import com.example.GrowLink.repository.UserRepository;
 
 @Service
+@Transactional
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     public NotificationService(NotificationRepository notificationRepository,
-                               UserService userService) {
+                               UserRepository userRepository) {
         this.notificationRepository = notificationRepository;
-        this.userService = userService;
+        this.userRepository = userRepository;
     }
 
-    @Transactional
     public void createNotification(User user, String title, String message, NotificationType type) {
         if (user == null) {
             return;
@@ -34,75 +35,61 @@ public class NotificationService {
         notification.setTitle(title);
         notification.setMessage(message);
         notification.setType(type);
-        notification.setIsRead(false);
-        notification.setCreatedAt(LocalDateTime.now());
+        notification.setRead(false);
 
         notificationRepository.save(notification);
     }
 
-    public List<Notification> getNotificationsForUser(User user) {
-        if (user == null) {
-            return List.of();
-        }
-        return notificationRepository.findByUserOrderByCreatedAtDesc(user);
+    @Transactional(readOnly = true)
+    public List<Notification> getNotificationsByUserEmail(String email) {
+        User user = getUserByEmail(email);
+        return notificationRepository.findByUserOrderByIdDesc(user);
     }
 
-    public List<Notification> getUnreadNotifications(User user) {
-        if (user == null) {
-            return List.of();
-        }
-        return notificationRepository.findByUserAndIsReadFalseOrderByCreatedAtDesc(user);
+    @Transactional(readOnly = true)
+    public List<Notification> getUnreadNotificationsByUserEmail(String email) {
+        User user = getUserByEmail(email);
+        return notificationRepository.findByUserAndIsReadFalseOrderByIdDesc(user);
     }
 
-    public long getUnreadCount(User user) {
-        if (user == null) {
-            return 0;
-        }
+    @Transactional(readOnly = true)
+    public long getUnreadCount(String email) {
+        User user = getUserByEmail(email);
         return notificationRepository.countByUserAndIsReadFalse(user);
     }
 
-    public long getUnreadCountByUserEmail(String email) {
-        if (email == null || email.isBlank()) {
-            return 0;
+    public String markAsRead(Long notificationId, String email) {
+        User user = getUserByEmail(email);
+
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("Notification not found."));
+
+        if (notification.getUser() == null || !notification.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException("You do not have permission to update this notification.");
         }
 
-        User user = userService.getUserByEmail(email);
-        return getUnreadCount(user);
-    }
-
-    @Transactional
-    public void markAsRead(Long notificationId, User user) {
-        Notification notification = notificationRepository.findById(notificationId).orElse(null);
-
-        if (notification == null || user == null) {
-            return;
-        }
-
-        if (!notification.getUser().getId().equals(user.getId())) {
-            return;
-        }
-
-        if (Boolean.TRUE.equals(notification.getIsRead())) {
-            return;
-        }
-
-        notification.setIsRead(true);
+        notification.setRead(true);
         notificationRepository.save(notification);
+
+        return "Notification marked as read.";
     }
 
-    @Transactional
-    public void markAllAsRead(User user) {
-        if (user == null) {
-            return;
+    public String markAllAsRead(String email) {
+        User user = getUserByEmail(email);
+
+        List<Notification> notifications = notificationRepository.findByUserAndIsReadFalseOrderByIdDesc(user);
+
+        for (Notification notification : notifications) {
+            notification.setRead(true);
         }
 
-        List<Notification> unreadNotifications =
-                notificationRepository.findByUserAndIsReadFalseOrderByCreatedAtDesc(user);
+        notificationRepository.saveAll(notifications);
 
-        for (Notification notification : unreadNotifications) {
-            notification.setIsRead(true);
-        }
+        return "All notifications marked as read.";
+    }
 
-        notificationRepository.saveAll(unreadNotifications);
+    private User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
     }
 }

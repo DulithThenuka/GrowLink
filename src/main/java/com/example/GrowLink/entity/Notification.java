@@ -18,28 +18,27 @@ public class Notification {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(length = 500)
+    @Column(nullable = false, length = 1000)
     private String message;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private NotificationType type;
 
-    @Column(name = "is_read", nullable = false)
-    private Boolean isRead = false;
+    @Column(nullable = false)
+    private boolean isRead = false;
 
-    @Column(name = "created_at")
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    public Notification() {
-    }
-
     @PrePersist
-    public void onCreate() {
-        this.createdAt = LocalDateTime.now();
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
     }
 
     public Long getId() {
@@ -50,51 +49,43 @@ public class Notification {
         return user;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public NotificationType getType() {
-        return type;
-    }
-
-    public Boolean getIsRead() {
-        return isRead;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getTitle() {
+        return title;
     }
 
     public void setTitle(String title) {
         this.title = title;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public NotificationType getType() {
+        return type;
     }
 
     public void setType(NotificationType type) {
         this.type = type;
     }
 
-    public void setIsRead(Boolean isRead) {
-        this.isRead = isRead;
+    public boolean isRead() {
+        return isRead;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setRead(boolean read) {
+        isRead = read;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 }
