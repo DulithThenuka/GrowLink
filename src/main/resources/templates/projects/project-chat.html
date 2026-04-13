@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${project.title + ' Chat | GrowLink'}">Project Chat | GrowLink</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            padding: 0;
+            color: #1f2937;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .muted {
+            color: #6b7280;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+
+        .error-text {
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        .link-btn {
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            resize: vertical;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            box-sizing: border-box;
+            margin-top: 8px;
+        }
+
+        .chat-stats {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .message-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 18px;
+            background: #fcfcfd;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .message-author {
+            font-weight: 700;
+        }
+
+        .message-time {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .message-content {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .empty {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .message-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div th:if="${message != null and !#strings.isEmpty(message)}" class="success-message" th:text="${message}">
+        Action completed.
+    </div>
+
+    <div class="card">
+        <div class="top-bar">
+            <div>
+                <h1 style="margin:0;" th:text="${project.title + ' Team Discussion'}">Project Team Discussion</h1>
+                <p class="muted" style="margin:8px 0 0;">Collaborate with your project team here.</p>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <span class="chat-stats">
+                    Messages: <span th:text="${messageCount}">0</span>
+                </span>
+
+                <a class="link-btn" th:href="@{/projects/{projectId}(projectId=${project.id})}">
+                    <button type="button" class="btn btn-secondary">Back to Project</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-top:0;">Send a Message</h2>
+
+        <form th:action="@{/projects/{projectId}/chat/send(projectId=${project.id})}" method="post" th:object="${messageDto}">
+            <div>
+                <label for="content"><strong>Your Message</strong></label>
+                <textarea id="content" th:field="*{content}" placeholder="Write your message to the team..."></textarea>
+                <div class="error-text" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
+            </div>
+
+            <div style="margin-top:14px;">
+                <button type="submit" class="btn btn-primary">Send Message</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-top:0;">Discussion History</h2>
+
+        <div th:if="${#lists.isEmpty(messages)}" class="empty">
+            No messages yet. Start the discussion.
+        </div>
+
+        <div class="message-list" th:if="${!#lists.isEmpty(messages)}">
+            <div class="message-card" th:each="projectMessage : ${messages}">
+                <div class="message-header">
+                    <div>
+                        <div class="message-author"
+                             th:text="${projectMessage.sender != null ? projectMessage.sender.fullName : 'Unknown User'}">
+                            Sender Name
+                        </div>
+                        <div class="message-time"
+                             th:text="${projectMessage.createdAt != null ? #temporals.format(projectMessage.createdAt, 'yyyy-MM-dd HH:mm') : ''}">
+                            2026-04-11 21:30
+                        </div>
+                    </div>
+
+                    <div>
+                        <form th:if="${isOwner or (projectMessage.sender != null and #authentication != null and #authentication.name == projectMessage.sender.email)}"
+                              th:action="@{/projects/{projectId}/chat/{messageId}/delete(projectId=${project.id}, messageId=${projectMessage.id})}"
+                              method="post">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                </div>
+
+                <p class="message-content" th:text="${projectMessage.content}">Message content here.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
