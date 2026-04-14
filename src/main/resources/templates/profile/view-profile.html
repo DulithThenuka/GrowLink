@@ -78,6 +78,47 @@
                 </p>
             </div>
         </section>
+
+        <section class="portfolio-section">
+    <div class="portfolio-header">
+        <h2>Completed Project Portfolio</h2>
+        <span class="portfolio-count" th:text="${portfolioCount + ' Projects'}">0 Projects</span>
+    </div>
+
+    <div th:if="${#lists.isEmpty(portfolioProjects)}" class="portfolio-empty">
+        This user has no completed portfolio projects yet.
+    </div>
+
+    <div class="portfolio-grid" th:if="${!#lists.isEmpty(portfolioProjects)}">
+        <div class="portfolio-card" th:each="portfolio : ${portfolioProjects}">
+            <div class="portfolio-top">
+                <div>
+                    <h3 th:text="${portfolio.title}">Project Title</h3>
+                    <p class="portfolio-category"
+                       th:if="${portfolio.category != null and !#strings.isEmpty(portfolio.category)}"
+                       th:text="${portfolio.category}">
+                        Category
+                    </p>
+                </div>
+
+                <div class="portfolio-badges">
+                    <span class="portfolio-badge role-badge" th:text="${portfolio.role}">OWNER</span>
+                    <span class="portfolio-badge status-badge" th:text="${portfolio.status}">COMPLETED</span>
+                </div>
+            </div>
+
+            <p class="portfolio-description"
+               th:text="${portfolio.description != null and !#strings.isEmpty(portfolio.description) ? portfolio.description : 'No project description provided.'}">
+                Project description goes here.
+            </p>
+
+            <a class="portfolio-link"
+               th:href="@{/projects/{projectId}(projectId=${portfolio.projectId})}">
+                View Project
+            </a>
+        </div>
+    </div>
+</section>
     </div>
 </main>
 
