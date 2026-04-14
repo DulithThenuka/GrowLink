@@ -2,6 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Projects - GrowLink')}"></head>
 <link rel="stylesheet" th:href="@{/css/projects.css}">
+<link rel="stylesheet" th:href="@{/css/project-workspace.css}">
 <body>
 
 <header th:replace="~{fragments/navbar :: navbar}"></header>
@@ -72,6 +73,14 @@
                     <p th:text="${membership.project.description}">Description</p>
                     <span class="skill-badge" th:text="${membership.project.status}">OPEN</span>
                 </a>
+
+                <span class="workspace-badge"
+      th:classappend="${project.status != null and project.status.name() == 'OPEN'} ? ' badge-open' :
+                      (${project.status != null and project.status.name() == 'IN_PROGRESS'} ? ' badge-in-progress' :
+                      (${project.status != null and project.status.name() == 'COMPLETED'} ? ' badge-completed' : ' badge-default'))"
+      th:text="${project.status}">
+    OPEN
+</span>
             </section>
 
         </div>

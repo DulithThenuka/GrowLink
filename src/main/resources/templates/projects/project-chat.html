@@ -181,6 +181,18 @@
                 <a class="link-btn" th:href="@{/projects/{projectId}(projectId=${project.id})}">
                     <button type="button" class="btn btn-secondary">Back to Project</button>
                 </a>
+
+                <a class="link-btn" th:href="@{/projects/{projectId}/tasks(projectId=${project.id})}">
+    <button type="button" class="btn btn-secondary">Tasks</button>
+</a>
+
+<a class="link-btn" th:href="@{/projects/{projectId}/files(projectId=${project.id})}">
+    <button type="button" class="btn btn-secondary">Files</button>
+</a>
+
+<a class="link-btn" th:href="@{/projects/{projectId}/analytics(projectId=${project.id})}">
+    <button type="button" class="btn btn-secondary">Analytics</button>
+</a>
             </div>
         </div>
     </div>
