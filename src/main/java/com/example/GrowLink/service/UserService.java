@@ -16,6 +16,8 @@ import com.example.GrowLink.dto.RegisterDto;
 import com.example.GrowLink.entity.User;
 import com.example.GrowLink.enums.Role;
 import com.example.GrowLink.repository.UserRepository;
+import com.example.GrowLink.repository.UserLearnSkillRepository;
+import com.example.GrowLink.repository.UserTeachSkillRepository;
 
 @Service
 public class UserService {
@@ -23,166 +25,97 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final FileUploadService fileUploadService;
-    private final SkillService skillService;
+
+    // ✅ REPLACED SkillService with repositories
+    private final UserTeachSkillRepository userTeachSkillRepository;
+    private final UserLearnSkillRepository userLearnSkillRepository;
 
     public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       FileUploadService fileUploadService,
-                       SkillService skillService) {
+                        PasswordEncoder passwordEncoder,
+                        FileUploadService fileUploadService,
+                        UserTeachSkillRepository userTeachSkillRepository,
+                        UserLearnSkillRepository userLearnSkillRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.fileUploadService = fileUploadService;
-        this.skillService = skillService;
+        this.userTeachSkillRepository = userTeachSkillRepository;
+        this.userLearnSkillRepository = userLearnSkillRepository;
     }
 
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
-    }
-
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    public boolean emailExists(String email) {
-        return userRepository.existsByEmail(email);
-    }
-
-    public User registerUser(RegisterDto registerDto) {
-        if (userRepository.existsByEmail(registerDto.getEmail())) {
-            throw new IllegalArgumentException("Email is already in use.");
+    public User registerUser(RegisterDto dto) {
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new RuntimeException("Email already exists");
         }
 
         User user = new User();
-        user.setFullName(registerDto.getFullName());
-        user.setEmail(registerDto.getEmail());
-        user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
+        user.setFullName(dto.getFullName());
+        user.setEmail(dto.getEmail());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setRole(Role.USER);
         user.setEnabled(true);
 
         return userRepository.save(user);
     }
 
-    public ProfileUpdateDto getProfileUpdateDtoByEmail(String email) {
-        User user = getUserByEmail(email);
+    // ✅ FIXED recommendation (NO SkillService)
+    public List<User> getRecommendedUsers(String email) {
 
-        ProfileUpdateDto dto = new ProfileUpdateDto();
-        dto.setFullName(user.getFullName());
-        dto.setHeadline(user.getHeadline());
-        dto.setLocation(user.getLocation());
-        dto.setBio(user.getBio());
+        User currentUser = getUserByEmail(email);
+        List<User> allUsers = userRepository.findAll();
 
-        return dto;
-    }
+        Set<String> myTeach = new LinkedHashSet<>();
+        Set<String> myLearn = new LinkedHashSet<>();
 
-    @Transactional
-    public void updateProfile(String email, ProfileUpdateDto profileUpdateDto) {
-        User user = getUserByEmail(email);
+        userTeachSkillRepository.findByUser(currentUser).forEach(s ->
+                myTeach.add(s.getSkill().getName().toLowerCase())
+        );
 
-        user.setFullName(profileUpdateDto.getFullName());
-        user.setHeadline(profileUpdateDto.getHeadline());
-        user.setLocation(profileUpdateDto.getLocation());
-        user.setBio(profileUpdateDto.getBio());
+        userLearnSkillRepository.findByUser(currentUser).forEach(s ->
+                myLearn.add(s.getSkill().getName().toLowerCase())
+        );
 
-        if (profileUpdateDto.getProfileImageFile() != null
-                && !profileUpdateDto.getProfileImageFile().isEmpty()) {
-            String imagePath = fileUploadService.saveProfileImage(profileUpdateDto.getProfileImageFile());
-            user.setProfileImage(imagePath);
+        List<User> result = new ArrayList<>();
+
+        for (User other : allUsers) {
+            if (other.getId().equals(currentUser.getId())) continue;
+
+            Set<String> otherTeach = new LinkedHashSet<>();
+            Set<String> otherLearn = new LinkedHashSet<>();
+
+            userTeachSkillRepository.findByUser(other).forEach(s ->
+                    otherTeach.add(s.getSkill().getName().toLowerCase())
+            );
+
+            userLearnSkillRepository.findByUser(other).forEach(s ->
+                    otherLearn.add(s.getSkill().getName().toLowerCase())
+            );
+
+            boolean match =
+                    myLearn.stream().anyMatch(otherTeach::contains)
+                            || myTeach.stream().anyMatch(otherLearn::contains);
+
+            if (match) result.add(other);
         }
 
-        userRepository.save(user);
+        return result;
     }
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
-    }
-
-    public List<User> searchUsers(String keyword) {
-        if (keyword == null || keyword.isBlank()) {
-            return userRepository.findAll();
-        }
-
-        String cleanedKeyword = keyword.trim();
-        return userRepository.findByFullNameContainingIgnoreCaseOrHeadlineContainingIgnoreCase(
-                cleanedKeyword,
-                cleanedKeyword
-        );
-    }
-
-    public List<User> getRecommendedUsers(String email) {
-        User currentUser = getUserByEmail(email);
-        List<User> allUsers = userRepository.findAll();
-
-        Set<String> myTeachSkills = new LinkedHashSet<>();
-        Set<String> myLearnSkills = new LinkedHashSet<>();
-
-        skillService.getTeachSkillsByUserEmail(email).forEach(item -> {
-            if (item.getSkill() != null && item.getSkill().getName() != null) {
-                myTeachSkills.add(item.getSkill().getName().trim().toLowerCase());
-            }
-        });
-
-        skillService.getLearnSkillsByUserEmail(email).forEach(item -> {
-            if (item.getSkill() != null && item.getSkill().getName() != null) {
-                myLearnSkills.add(item.getSkill().getName().trim().toLowerCase());
-            }
-        });
-
-        List<User> recommendedUsers = new ArrayList<>();
-
-        for (User otherUser : allUsers) {
-            if (otherUser.getId().equals(currentUser.getId())) {
-                continue;
-            }
-
-            Set<String> otherTeachSkills = new LinkedHashSet<>();
-            Set<String> otherLearnSkills = new LinkedHashSet<>();
-
-            skillService.getTeachSkillsByUserEmail(otherUser.getEmail()).forEach(item -> {
-                if (item.getSkill() != null && item.getSkill().getName() != null) {
-                    otherTeachSkills.add(item.getSkill().getName().trim().toLowerCase());
-                }
-            });
-
-            skillService.getLearnSkillsByUserEmail(otherUser.getEmail()).forEach(item -> {
-                if (item.getSkill() != null && item.getSkill().getName() != null) {
-                    otherLearnSkills.add(item.getSkill().getName().trim().toLowerCase());
-                }
-            });
-
-            boolean matchFound = false;
-
-            for (String skill : myLearnSkills) {
-                if (otherTeachSkills.contains(skill)) {
-                    matchFound = true;
-                    break;
-                }
-            }
-
-            if (!matchFound) {
-                for (String skill : myTeachSkills) {
-                    if (otherLearnSkills.contains(skill)) {
-                        matchFound = true;
-                        break;
-                    }
-                }
-            }
-
-            if (matchFound) {
-                recommendedUsers.add(otherUser);
-            }
-        }
-
-        return recommendedUsers;
     }
 
     public long getTotalUsers() {
@@ -192,17 +125,41 @@ public class UserService {
     public long getDisabledUserCount() {
         return userRepository.countByEnabledFalse();
     }
+    public List<User> searchUsers(String keyword) {
+    List<User> users = userRepository.findAll();
 
+    if (keyword == null || keyword.trim().isEmpty()) {
+        return users;
+    }
+
+    String lowerKeyword = keyword.toLowerCase();
+
+    List<User> filtered = new ArrayList<>();
+
+    for (User user : users) {
+        if (user.getFullName() != null && user.getFullName().toLowerCase().contains(lowerKeyword)) {
+            filtered.add(user);
+        } else if (user.getEmail() != null && user.getEmail().toLowerCase().contains(lowerKeyword)) {
+            filtered.add(user);
+        }
+    }
+
+    return filtered;
+}
+
+public boolean emailExists(String email) {
+    return userRepository.existsByEmail(email);
+}
     @Transactional
-    public void disableUser(Long userId) {
-        User user = getUserById(userId);
+    public void disableUser(Long id) {
+        User user = getUserById(id);
         user.setEnabled(false);
         userRepository.save(user);
     }
 
     @Transactional
-    public void enableUser(Long userId) {
-        User user = getUserById(userId);
+    public void enableUser(Long id) {
+        User user = getUserById(id);
         user.setEnabled(true);
         userRepository.save(user);
     }

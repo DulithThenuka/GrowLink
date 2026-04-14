@@ -14,6 +14,7 @@ import com.example.GrowLink.entity.UserTeachSkill;
 import com.example.GrowLink.repository.SkillRepository;
 import com.example.GrowLink.repository.UserLearnSkillRepository;
 import com.example.GrowLink.repository.UserTeachSkillRepository;
+import com.example.GrowLink.repository.UserRepository;
 
 @Service
 public class SkillService {
@@ -21,31 +22,37 @@ public class SkillService {
     private final SkillRepository skillRepository;
     private final UserTeachSkillRepository userTeachSkillRepository;
     private final UserLearnSkillRepository userLearnSkillRepository;
-    private final UserService userService;
+    private final UserRepository userRepository; // ✅ FIX (replaces UserService)
 
     public SkillService(SkillRepository skillRepository,
                         UserTeachSkillRepository userTeachSkillRepository,
                         UserLearnSkillRepository userLearnSkillRepository,
-                        UserService userService) {
+                        UserRepository userRepository) {
         this.skillRepository = skillRepository;
         this.userTeachSkillRepository = userTeachSkillRepository;
         this.userLearnSkillRepository = userLearnSkillRepository;
-        this.userService = userService;
+        this.userRepository = userRepository;
+    }
+
+    // ✅ helper method (replaces userService.getUserByEmail)
+    private User getUser(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
     }
 
     public List<UserTeachSkill> getTeachSkillsByUserEmail(String email) {
-        User user = userService.getUserByEmail(email);
+        User user = getUser(email);
         return userTeachSkillRepository.findByUser(user);
     }
 
     public List<UserLearnSkill> getLearnSkillsByUserEmail(String email) {
-        User user = userService.getUserByEmail(email);
+        User user = getUser(email);
         return userLearnSkillRepository.findByUser(user);
     }
 
     @Transactional
     public void addTeachSkill(String email, TeachSkillDto teachSkillDto) {
-        User user = userService.getUserByEmail(email);
+        User user = getUser(email);
 
         Skill skill = findOrCreateSkill(
                 teachSkillDto.getSkillName(),
@@ -63,7 +70,7 @@ public class SkillService {
 
     @Transactional
     public void addLearnSkill(String email, LearnSkillDto learnSkillDto) {
-        User user = userService.getUserByEmail(email);
+        User user = getUser(email);
 
         Skill skill = findOrCreateSkill(
                 learnSkillDto.getSkillName(),

@@ -37,6 +37,8 @@ public class ExploreController {
                                @RequestParam(value = "message", required = false) String message,
                                Model model,
                                Principal principal) {
+        
+                                
 
         model.addAttribute("users", userService.searchUsers(keyword));
         model.addAttribute("keyword", keyword);
