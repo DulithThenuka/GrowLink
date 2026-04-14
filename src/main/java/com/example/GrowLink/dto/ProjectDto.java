@@ -2,6 +2,7 @@ package com.example.GrowLink.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import com.example.GrowLink.enums.ProjectStatus;
 
 public class ProjectDto {
 
@@ -18,6 +19,16 @@ public class ProjectDto {
 
     @Size(max = 500, message = "Required skills must not exceed 500 characters")
     private String requiredSkillsText;
+
+    private ProjectStatus status;
+
+public ProjectStatus getStatus() {
+    return status;
+}
+
+public void setStatus(ProjectStatus status) {
+    this.status = status;
+}
 
     public ProjectDto() {
     }

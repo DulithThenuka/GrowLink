@@ -35,7 +35,7 @@ public class GlobalControllerAdvice {
             return 0;
         }
 
-        return notificationService.getUnreadCount(user);
+        return notificationService.getUnreadCount(user.getEmail());
     }
 
     @ModelAttribute("unreadMessageCount")

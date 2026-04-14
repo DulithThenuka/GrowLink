@@ -41,15 +41,29 @@ public class HomeController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboardPage(Model model, Principal principal) {
-        String email = principal.getName();
+public String dashboardPage(Model model, Principal principal) {
 
-        model.addAttribute("teachSkillCount", skillService.getTeachSkillsByUser(email).size());
-        model.addAttribute("learnSkillCount", skillService.getLearnSkillsByUser(email).size());
-        model.addAttribute("connectionsCount", connectionService.getAcceptedConnections(email).size());
-        model.addAttribute("pendingLearningRequestsCount", learningRequestService.getReceivedRequests(email).size());
-        model.addAttribute("unreadNotificationCount", notificationService.getUnreadCount(email));
-
-        return "dashboard";
+    if (principal == null) {
+        return "redirect:/login";
     }
+
+    String email = principal.getName();
+
+    model.addAttribute("teachSkillCount",
+            skillService.getTeachSkillsByUserEmail(email).size());
+
+    model.addAttribute("learnSkillCount",
+            skillService.getLearnSkillsByUserEmail(email).size());
+
+    model.addAttribute("connectionsCount",
+            connectionService.getAcceptedConnections(email).size());
+
+    model.addAttribute("pendingLearningRequestsCount",
+            learningRequestService.getReceivedRequests(email).size());
+
+    model.addAttribute("unreadNotificationCount",
+            notificationService.getUnreadCount(email));
+
+    return "dashboard";
+}
 }

@@ -87,8 +87,6 @@ public class MessageService {
         Conversation conversation = new Conversation();
         conversation.setUser1(currentUser);
         conversation.setUser2(otherUser);
-        conversation.setCreatedAt(LocalDateTime.now());
-        conversation.setUpdatedAt(LocalDateTime.now());
 
         return conversationRepository.save(conversation);
     }
@@ -116,7 +114,6 @@ public class MessageService {
 
         messageRepository.save(message);
 
-        conversation.setUpdatedAt(LocalDateTime.now());
         conversationRepository.save(conversation);
 
         User receiver = conversation.getUser1().getId().equals(sender.getId())

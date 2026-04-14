@@ -8,5 +8,7 @@ public enum NotificationType {
     SYSTEM,
     MESSAGE,
     LIKE,
+    TASK,
+    PROJECT,
     COMMENT
 }

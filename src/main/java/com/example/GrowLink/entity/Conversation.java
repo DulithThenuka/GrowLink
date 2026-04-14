@@ -13,25 +13,37 @@ public class Conversation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Conversation belongs to a project
+    // User 1
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false)
-    private Project project;
+    @JoinColumn(name = "user1_id", nullable = false)
+    private User user1;
 
-    // Messages inside this conversation
+    // User 2
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user2_id", nullable = false)
+    private User user2;
+
+    // Messages
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messages;
 
-    // Created timestamp
+    // timestamps
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    public Conversation() {
+    private LocalDateTime updatedAt;
+
+    // ===== LIFECYCLE METHODS (AUTO TIMESTAMP) =====
+
+    @PrePersist
+    public void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    public Conversation(Project project) {
-        this.project = project;
-        this.createdAt = LocalDateTime.now();
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     // ===== GETTERS & SETTERS =====
@@ -40,12 +52,20 @@ public class Conversation {
         return id;
     }
 
-    public Project getProject() {
-        return project;
+    public User getUser1() {
+        return user1;
     }
 
-    public void setProject(Project project) {
-        this.project = project;
+    public void setUser1(User user1) {
+        this.user1 = user1;
+    }
+
+    public User getUser2() {
+        return user2;
+    }
+
+    public void setUser2(User user2) {
+        this.user2 = user2;
     }
 
     public List<Message> getMessages() {
@@ -58,5 +78,9 @@ public class Conversation {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }

@@ -110,6 +110,35 @@ public class ProjectService {
 
         return projects.stream().distinct().toList();
     }
+    @Transactional(readOnly = true)
+public List<Project> searchProjects(String keyword, String category, ProjectStatus status) {
+    boolean hasKeyword = keyword != null && !keyword.isBlank();
+    boolean hasCategory = category != null && !category.isBlank();
+    boolean hasStatus = status != null;
+
+    return projectRepository.findAll()
+            .stream()
+            .filter(p -> !hasKeyword || 
+                    p.getTitle().toLowerCase().contains(keyword.toLowerCase()) ||
+                    p.getDescription().toLowerCase().contains(keyword.toLowerCase()))
+            .filter(p -> !hasCategory || 
+                    (p.getCategory() != null && p.getCategory().equalsIgnoreCase(category)))
+            .filter(p -> !hasStatus || p.getStatus() == status)
+            .sorted((a, b) -> Long.compare(b.getId(), a.getId()))
+            .toList();
+}
+@Transactional(readOnly = true)
+public List<Project> getRecommendedProjects(String email) {
+
+    User user = getUserByEmail(email);
+
+    return projectRepository.findAll()
+            .stream()
+            .filter(p -> p.getOwner() != null && !p.getOwner().getId().equals(user.getId()))
+            .sorted((a, b) -> Long.compare(b.getId(), a.getId()))
+            .limit(5)
+            .toList();
+}
 
     @Transactional(readOnly = true)
     public Project getProjectById(Long projectId) {
