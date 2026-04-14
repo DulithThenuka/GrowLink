@@ -10,6 +10,7 @@ import com.example.GrowLink.service.ConnectionService;
 import com.example.GrowLink.service.LearningRequestService;
 import com.example.GrowLink.service.NotificationService;
 import com.example.GrowLink.service.SkillService;
+import java.util.Collections;
 
 @Controller
 public class HomeController {
@@ -55,15 +56,25 @@ public String dashboardPage(Model model, Principal principal) {
     model.addAttribute("learnSkillCount",
             skillService.getLearnSkillsByUserEmail(email).size());
 
-    model.addAttribute("connectionsCount",
+    // ⚠ FIXED NAME (was connectionsCount)
+    model.addAttribute("connectionCount",
             connectionService.getAcceptedConnections(email).size());
 
-    model.addAttribute("pendingLearningRequestsCount",
+    // These are REQUIRED by your HTML (you were missing them!)
+    model.addAttribute("sentLearningCount",
+            learningRequestService.getSentRequests(email).size());
+
+    model.addAttribute("receivedLearningCount",
             learningRequestService.getReceivedRequests(email).size());
 
     model.addAttribute("unreadNotificationCount",
             notificationService.getUnreadCount(email));
 
+    // VERY IMPORTANT (avoid crash if not implemented yet)
+model.addAttribute("recommendedProjects", Collections.emptyList());
+model.addAttribute("recommendedUsers", Collections.emptyList());
+
     return "dashboard";
 }
+
 }
